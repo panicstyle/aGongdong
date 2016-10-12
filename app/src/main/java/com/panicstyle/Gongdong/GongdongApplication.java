@@ -15,6 +15,7 @@ import java.net.CookiePolicy;
 public class GongdongApplication extends Application {
 
     HttpRequest m_httpRequest;
+    String m_strRegId;
 
     @Override
     public void onCreate() {
