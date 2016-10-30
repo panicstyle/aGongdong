@@ -38,11 +38,12 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 	private AdView m_adView;
     private ProgressDialog m_pd;
 	private String m_strErrorMsg;
-	protected String m_itemsTitle;
-	protected String m_itemsLink;
-	protected String m_CommID;
-	protected String m_BoardID;
-	private HttpRequest m_httpRequest;
+	protected String m_strBoardTitle;
+//	protected String m_itemsLink;
+	protected String m_strCommId;
+	protected String m_strBoardId;
+	protected String m_strBoardNo;
+	protected String m_strBoardName;
     private List<HashMap<String, Object>> m_arrayItems;
     private int m_nPage;
     static final int REQUEST_WRITE = 1;
@@ -50,6 +51,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
     protected int m_LoginStatus;
 	public static int m_nMode;
 	private EfficientAdapter m_adapter;
+	private GongdongApplication m_app;
 
 	private static class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
 		ImageView bmImage;
@@ -242,25 +244,31 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 					Intent intent = new Intent(ItemsActivity.this, ArticleViewActivity.class);
 
 					if (m_nMode == 1) {
-						intent.putExtra("ISPNOTICE", (Integer) item.get("isPNotice"));
-						intent.putExtra("ISNOTICE", (Integer) item.get("isNotice"));
-						intent.putExtra("MODE", (Integer) m_nMode);
-						intent.putExtra("SUBJECT", (String) item.get("subject"));
-						intent.putExtra("DATE", (String) item.get("date"));
-						intent.putExtra("USERNAME", (String) item.get("name"));
-						intent.putExtra("USERID", (String) item.get("id"));
-						intent.putExtra("LINK", (String) item.get("link"));
-						intent.putExtra("HIT", (String) item.get("hit"));
+						intent.putExtra("isPNotice", (Integer) item.get("isPNotice"));
+						intent.putExtra("isNotice", (Integer) item.get("isNotice"));
+						intent.putExtra("mode", (Integer) m_nMode);
+						intent.putExtra("boardTitle", (String) item.get("subject"));
+						intent.putExtra("date", (String) item.get("date"));
+						intent.putExtra("userName", (String) item.get("name"));
+						intent.putExtra("userId", (String) item.get("id"));
+//						intent.putExtra("LINK", (String) item.get("link"));
+						intent.putExtra("hit", (String) item.get("hit"));
+						intent.putExtra("commId", (String) item.get("commId"));
+						intent.putExtra("boardId", (String) item.get("boardId"));
+						intent.putExtra("boardNo", (String) item.get("boardNo"));
 					} else {
-						intent.putExtra("ISPNOTICE", 0);
-						intent.putExtra("ISNOTICE", 0);
-						intent.putExtra("MODE", (Integer) m_nMode);
-						intent.putExtra("SUBJECT", (String) item.get("subject"));
-						intent.putExtra("DATE", "");
-						intent.putExtra("USERNAME", (String) item.get("name"));
-						intent.putExtra("USERID", "");
-						intent.putExtra("LINK", (String) item.get("link"));
-						intent.putExtra("HIT", (String) item.get("hit"));
+						intent.putExtra("isPNotice", 0);
+						intent.putExtra("isNotice", 0);
+						intent.putExtra("mode", (Integer) m_nMode);
+						intent.putExtra("boardTitle", (String) item.get("subject"));
+						intent.putExtra("date", "");
+						intent.putExtra("userName", (String) item.get("name"));
+						intent.putExtra("userId", "");
+//						intent.putExtra("LINK", (String) item.get("link"));
+						intent.putExtra("hit", (String) item.get("hit"));
+						intent.putExtra("commId", (String) item.get("commId"));
+						intent.putExtra("boardId", (String) item.get("boardId"));
+						intent.putExtra("boardNo", (String) item.get("boardNo"));
 					}
 					startActivityForResult(intent, REQUEST_VIEW);
 				}
@@ -271,12 +279,11 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		AdRequest adRequest = new AdRequest.Builder().build();
 		m_adView.loadAd(adRequest);
 
-		GongdongApplication app = (GongdongApplication)getApplication();
-		m_httpRequest = app.m_httpRequest;
+		m_app = (GongdongApplication)getApplication();
 
         intenter();
 
-		setTitle(m_itemsTitle);
+		setTitle(m_strBoardName);
 
         m_nPage = 1;
         m_arrayItems = new ArrayList<>();
@@ -296,7 +303,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
     	if (!getData()) {
             // Login
 			Login login = new Login();
-			m_LoginStatus = login.LoginTo(ItemsActivity.this, m_httpRequest);
+			m_LoginStatus = login.LoginTo(ItemsActivity.this, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strUserPw);
 			m_strErrorMsg = login.m_strErrorMsg;
 
     		if (m_LoginStatus > 0) {
@@ -352,19 +359,20 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		Bundle extras = getIntent().getExtras();
 		// 가져온 값을 set해주는 부분
 
-		m_itemsTitle = extras.getString("ITEMS_TITLE");
-		m_itemsLink = extras.getString("ITEMS_LINK");
+		m_strCommId = extras.getString("commId");
+		m_strBoardId = extras.getString("boardId");
+		m_strBoardName = extras.getString("boardName");
+//		m_itemsLink = extras.getString("ITEMS_LINK");
 
-		m_CommID = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", m_itemsLink);
-		m_BoardID = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=$)", m_itemsLink);
+//		m_CommID = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", m_itemsLink);
+//		m_BoardID = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=$)", m_itemsLink);
 	}
 
     protected boolean getData() {
 		String Page = Integer.toString(m_nPage);
-		String url = "http://cafe.gongdong.or.kr/" + m_itemsLink + "&page=" + Page;
-		HttpRequest httpRequest = new HttpRequest();
-
-        String result = m_httpRequest.requestGet(url, "", "utf-8");
+//		http://cafe.gongdong.or.kr/cafe.php?p1=menbal&sort=35
+		String url = "http://cafe.gongdong.or.kr/cafe.php?p1=" + m_strCommId + "&sort=" + m_strBoardId + "&page=" + Page;
+        String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
 
         if (result.length() < 200) {
         	return false;
@@ -414,7 +422,13 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 
 	        // link
 			String strLink = Utils.getMatcherFirstString("(?<=<a href=\\\")(.|\\n)*?(?=\\\")", matchstr);
-            item.put("link", strLink);
+			String commId = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", strLink);
+			String boardId = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=&)", strLink);
+			String boardNo = Utils.getMatcherFirstString("(?<=number=)(.|\\n)*?(?=&)", strLink);
+
+			item.put("commId", commId);
+			item.put("boardId", boardId);
+			item.put("boardNo", boardNo);
 
 	        // comment
 			String strComment = Utils.getMatcherFirstString("(?<=<font face=\\\"Tahoma\\\"><b>\\[)(.|\\n)*?(?=\\]</b></font>)", matchstr);
@@ -487,8 +501,16 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			item.put("subject", strSubject);
 
 			// link
+//			String strLink = Utils.getMatcherFirstString("(?<=<a href=\\\")(.|\\n)*?(?=\\\")", matchstr);
+//			item.put("link", strLink);
 			String strLink = Utils.getMatcherFirstString("(?<=<a href=\\\")(.|\\n)*?(?=\\\")", matchstr);
-			item.put("link", strLink);
+			String commId = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", strLink);
+			String boardId = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=&)", strLink);
+			String boardNo = Utils.getMatcherFirstString("(?<=number=)(.|\\n)*?(?=&)", strLink);
+
+			item.put("commId", commId);
+			item.put("boardId", boardId);
+			item.put("boardNo", boardNo);
 
 			// comment
 			String strComment = Utils.getMatcherFirstString("(?<=<b>\\[)(.|\\n)*?(?=\\]</b>)", matchstr);
@@ -543,12 +565,12 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 	public void addArticle() {
         Intent intent = new Intent(this, ArticleWriteActivity.class);
 		int nMode = 0;	// 0 is New article
-		intent.putExtra("MODE", nMode);
-	    intent.putExtra("COMMID", m_CommID);
-	    intent.putExtra("BOARDID", m_BoardID);
-	    intent.putExtra("BOARDNO",  "");
-		intent.putExtra("TITLE", "");
-		intent.putExtra("CONTENT", "");
+		intent.putExtra("mode", nMode);
+	    intent.putExtra("commId", m_strCommId);
+	    intent.putExtra("boardId", m_strBoardId);
+	    intent.putExtra("boardNo",  "");
+		intent.putExtra("boardTitle", "");
+		intent.putExtra("boardContent", "");
         startActivityForResult(intent, REQUEST_WRITE);
     }
 

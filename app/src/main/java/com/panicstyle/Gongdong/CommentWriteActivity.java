@@ -22,32 +22,31 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CommentWriteActivity extends AppCompatActivity implements Runnable {
-    private HttpRequest m_httpRequest;
     private ProgressDialog m_pd;
     private int m_nMode;
     private int m_nPNotice;
-    private String m_CommID;
-    private String m_BoardID;
-    private String m_BoardNo;
-    private String m_CommentNo;
+    private String m_strCommId;
+    private String m_strBoardId;
+    private String m_strBoardNo;
+    private String m_strCommentNo;
     private boolean m_bSaveStatus;
     private String m_ErrorMsg;
-    private String m_Content;
+    private String m_strComment;
+    private GongdongApplication m_app;
 
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comment_write);
 
-        GongdongApplication app = (GongdongApplication)getApplication();
-        m_httpRequest = app.m_httpRequest;
+        m_app = (GongdongApplication)getApplication();
 
         intenter();
 
         if (m_nMode == 1) {
             setTitle("댓글수정");
-            m_Content = Utils.repalceHtmlSymbol(m_Content);
+            m_strComment = Utils.repalceHtmlSymbol(m_strComment);
             EditText tContent = (EditText) findViewById(R.id.editContent);
-            tContent.setText(m_Content);
+            tContent.setText(m_strComment);
         } else {
             setTitle("댓글쓰기");
         }
@@ -57,13 +56,13 @@ public class CommentWriteActivity extends AppCompatActivity implements Runnable 
 //    	Intent intent = getIntent();  // 값을 가져오는 인텐트 객체생성
     	Bundle extras = getIntent().getExtras();
     	// 가져온 값을 set해주는 부분
-        m_nMode = extras.getInt("MODE");
-        m_nPNotice = extras.getInt("ISPNOTICE");
-    	m_CommID = extras.getString("COMMID");
-    	m_BoardID = extras.getString("BOARDID");
-    	m_BoardNo = extras.getString("BOARDNO");
-    	m_CommentNo = extras.getString("COMMENTNO");
-        m_Content = extras.getString("COMMENT");
+        m_nMode = extras.getInt("mode");
+        m_nPNotice = extras.getInt("isPNotice");
+    	m_strCommId = extras.getString("commId");
+    	m_strBoardId = extras.getString("boardId");
+    	m_strBoardNo = extras.getString("boardNo");
+    	m_strCommentNo = extras.getString("commentNo");
+        m_strComment = extras.getString("content");
 
     }
 	
@@ -71,9 +70,9 @@ public class CommentWriteActivity extends AppCompatActivity implements Runnable 
     	
     	EditText textContent = (EditText)findViewById(R.id.editContent);
 
-    	m_Content = textContent.getText().toString();
+        m_strComment = textContent.getText().toString();
     	
-    	if (m_Content.length() <= 0) {
+    	if (m_strComment.length() <= 0) {
     		AlertDialog.Builder ab = null;
 			ab = new AlertDialog.Builder( this );
 			ab.setMessage( "입력된 내용이 없습니다. 종료하시겠습니까?");
@@ -140,15 +139,15 @@ public class CommentWriteActivity extends AppCompatActivity implements Runnable 
     };        
     	
     protected boolean PostData() {
-		String url = "http://cafe.gongdong.or.kr/cafe.php?mode=up_add&sub_sort=&p2=&p1=" + m_CommID + "&sort=" + m_BoardID;
-        String strParam = "number=" + m_BoardNo + "&content=" + m_Content;
+		String url = "http://cafe.gongdong.or.kr/cafe.php?mode=up_add&sub_sort=&p2=&p1=" + m_strCommId + "&sort=" + m_strBoardId;
+        String strParam = "number=" + m_strBoardNo + "&content=" + m_strComment;
         ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-        nameValuePairs.add(new BasicNameValuePair("number", m_BoardNo));
-        if (m_CommentNo.length() > 0) {
-            nameValuePairs.add(new BasicNameValuePair("number_re", m_CommentNo));
+        nameValuePairs.add(new BasicNameValuePair("number", m_strBoardNo));
+        if (m_strCommentNo.length() > 0) {
+            nameValuePairs.add(new BasicNameValuePair("number_re", m_strCommentNo));
         }
-        nameValuePairs.add(new BasicNameValuePair("content", m_Content));
-		String result = m_httpRequest.requestPost(url, nameValuePairs, url, "utf-8");
+        nameValuePairs.add(new BasicNameValuePair("content", m_strComment));
+		String result = m_app.m_httpRequest.requestPost(url, nameValuePairs, url, "utf-8");
 
         if (!result.contains("<meta http-equiv=\"refresh\" content=\"0;url=/cafe.php?sort=")) {
             m_ErrorMsg = Utils.getMatcherFirstString("(?<=window.alert\\(\\\")(.|\\n)*?(?=\\\")", result);
@@ -161,11 +160,11 @@ public class CommentWriteActivity extends AppCompatActivity implements Runnable 
     }
 
     protected boolean PostModifyData() {
-        String url = "http://cafe.gongdong.or.kr/cafe.php?mode=edit_reply&p2=&p1=" + m_CommID + "&sort=" + m_BoardID;
+        String url = "http://cafe.gongdong.or.kr/cafe.php?mode=edit_reply&p2=&p1=" + m_strCommId + "&sort=" + m_strBoardId;
         ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-        nameValuePairs.add(new BasicNameValuePair("number", m_CommentNo));
-        nameValuePairs.add(new BasicNameValuePair("content", m_Content));
-        String result = m_httpRequest.requestPost(url, nameValuePairs, url, "utf-8");
+        nameValuePairs.add(new BasicNameValuePair("number", m_strCommentNo));
+        nameValuePairs.add(new BasicNameValuePair("content", m_strComment));
+        String result = m_app.m_httpRequest.requestPost(url, nameValuePairs, url, "utf-8");
 
         if (!result.contains("<meta http-equiv=\"refresh\" content=\"0;url=/cafe.php?sort=")) {
             m_ErrorMsg = Utils.getMatcherFirstString("(?<=window.alert\\(\\\")(.|\\n)*?(?=\\\")", result);
@@ -183,19 +182,19 @@ public class CommentWriteActivity extends AppCompatActivity implements Runnable 
                 "<methodCall>\n" +
                 "<params>\n" +
                 "<_filter><![CDATA[insert_comment]]></_filter>\n" +
-                "<error_return_url><![CDATA[/notice/" + m_BoardNo + "]]></error_return_url>\n" +
+                "<error_return_url><![CDATA[/notice/" + m_strBoardNo + "]]></error_return_url>\n" +
                 "<mid><![CDATA[notice]]></mid>\n" +
-                "<document_srl><![CDATA[" + m_BoardNo + "]]></document_srl>\n" +
+                "<document_srl><![CDATA[" + m_strBoardNo + "]]></document_srl>\n" +
                 "<comment_srl><![CDATA[0]]></comment_srl>\n" +
-                "<content><![CDATA[<p>" + m_Content + "</p>\n" +
+                "<content><![CDATA[<p>" + m_strComment + "</p>\n" +
                 "]]></content>\n" +
                 "<module><![CDATA[board]]></module>\n" +
                 "<act><![CDATA[procBoardInsertComment]]></act>\n" +
                 "</params>\n" +
                 "</methodCall>";
 
-        String strReferer = "http://www.gongdong.or.kr/notice/" + m_BoardNo;
-        String result = m_httpRequest.requestPost(url, strPostParam, strReferer, "utf-8");
+        String strReferer = "http://www.gongdong.or.kr/notice/" + m_strBoardNo;
+        String result = m_app.m_httpRequest.requestPost(url, strPostParam, strReferer, "utf-8");
 
         if (!result.contains("<error>0</error>")) {
             m_ErrorMsg = Utils.getMatcherFirstString("(?<=<message>)(.|\\n)*?(?=</message>)", result);
@@ -213,19 +212,21 @@ public class CommentWriteActivity extends AppCompatActivity implements Runnable 
                 "<methodCall>\n" +
                 "<params>\n" +
                 "<_filter><![CDATA[insert_comment]]></_filter>\n" +
-                "<error_return_url><![CDATA[/index.php?mid=notice&document_srl=" + m_BoardNo + "&act=dispBoardModifyComment&comment_srl=" + m_CommentNo +"]]></error_return_url>\n" +
+                "<error_return_url><![CDATA[/index.php?mid=notice&document_srl=" + m_strBoardNo
+                    + "&act=dispBoardModifyComment&comment_srl=" + m_strCommentNo +"]]></error_return_url>\n" +
                 "<act><![CDATA[procBoardInsertComment]]></act>\n" +
                 "<mid><![CDATA[notice]]></mid>\n" +
-                "<document_srl><![CDATA[" + m_BoardNo + "]]></document_srl>\n" +
-                "<comment_srl><![CDATA[" + m_CommentNo + "]]></comment_srl>\n" +
-                "<content><![CDATA[<p>" + m_Content + "</p>\n" +
+                "<document_srl><![CDATA[" + m_strBoardNo + "]]></document_srl>\n" +
+                "<comment_srl><![CDATA[" + m_strCommentNo + "]]></comment_srl>\n" +
+                "<content><![CDATA[<p>" + m_strComment + "</p>\n" +
                 "]]></content>\n" +
                 "<parent_srl><![CDATA[0]]></parent_srl>\n" +
                 "<module><![CDATA[board]]></module>\n" +
                 "</params>\n" +
                 "</methodCall>";
-        String strReferer = "http://www.gongdong.or.kr/index.php?mid=notice&document_srl=" + m_BoardNo + "&act=dispBoardModifyComment&comment_srl=" + m_CommentNo;
-        String result = m_httpRequest.requestPost(url, strPostParam, strReferer, "utf-8");
+        String strReferer = "http://www.gongdong.or.kr/index.php?mid=notice&document_srl=" + m_strBoardNo
+                + "&act=dispBoardModifyComment&comment_srl=" + m_strCommentNo;
+        String result = m_app.m_httpRequest.requestPost(url, strPostParam, strReferer, "utf-8");
 
         if (!result.contains("<error>0</error>")) {
             m_ErrorMsg = Utils.getMatcherFirstString("(?<=<message>)(.|\\n)*?(?=</message>)", result);

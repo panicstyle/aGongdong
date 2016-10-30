@@ -15,7 +15,10 @@ import java.net.CookiePolicy;
 public class GongdongApplication extends Application {
 
     HttpRequest m_httpRequest;
-    String m_strRegId;
+    public static String m_strUserId = null;
+    public static String m_strUserPw = null;
+    public static String m_strRegId = null;
+    public static boolean m_nPushYN = false;
 
     @Override
     public void onCreate() {

@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 public class MainActivity extends AppCompatActivity implements Runnable {
     private ListView m_listView;
@@ -37,10 +38,8 @@ public class MainActivity extends AppCompatActivity implements Runnable {
     private int m_LoginStatus;
     static final int SETUP_CODE = 1234;
     private String m_strErrorMsg = "";
-
     private List<HashMap<String, String>> m_arrayItems;
-
-    private HttpRequest m_httpRequest;
+    private GongdongApplication m_app;
 
     private static class EfficientAdapter extends BaseAdapter {
         private LayoutInflater mInflater;
@@ -79,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
             HashMap<String, String> item;;
             String title;
             item = arrayItems.get(position);
-            title = item.get("title");
+            title = item.get("commName");
 
             holder.title.setText(title);
 
@@ -134,12 +133,12 @@ public class MainActivity extends AppCompatActivity implements Runnable {
                   String title = null;
                   String code = null;
                   item = (HashMap<String, String>) m_arrayItems.get(position);
-                  title = (String) item.get("title");
-                  code = (String) item.get("code");
+                  title = (String) item.get("commName");
+                  code = (String) item.get("commId");
 
                   Intent intent = new Intent(MainActivity.this, BoardActivity.class);
-                  intent.putExtra("BOARD_TITLE", title);
-                  intent.putExtra("BOARD_CODE", code);
+                  intent.putExtra("commName", title);
+                  intent.putExtra("commId", code);
                   startActivity(intent);
               }
           });
@@ -149,9 +148,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         AdRequest adRequest = new AdRequest.Builder().build();
         AdView.loadAd(adRequest);
 
-        GongdongApplication app = (GongdongApplication)getApplication();
-        m_httpRequest = app.m_httpRequest;
-
+        m_app = (GongdongApplication)getApplication();
 
         SetInfo setInfo = new SetInfo();
 
@@ -167,6 +164,20 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         }
 
         isStoragePermissionGranted();
+        if (!setInfo.GetUserInfo(MainActivity.this)) {
+            m_app.m_strUserId = "";
+            m_app.m_strUserPw = "";
+            m_app.m_nPushYN = true;
+        } else {
+            m_app.m_strUserId = setInfo.m_userId;
+            m_app.m_strUserPw = setInfo.m_userPw;
+            m_app.m_nPushYN = setInfo.m_pushYN;
+        }
+        System.out.println("UserID = " +  m_app.m_strUserId);
+
+//        FirebaseMessaging.getInstance().subscribeToTopic("news");
+        m_app.m_strRegId = FirebaseInstanceId.getInstance().getToken();
+        System.out.println("RegID = " + m_app.m_strRegId);
 
         m_pd = ProgressDialog.show(this, "", "로딩중", true, false);
 
@@ -215,7 +226,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
 
         // Login
         Login login = new Login();
-        m_LoginStatus = login.LoginTo(context, m_httpRequest);
+        m_LoginStatus = login.LoginTo(context, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strUserPw);
         m_strErrorMsg = login.m_strErrorMsg;
 
         if (m_LoginStatus <= 0) {
@@ -233,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
 
         String url = "http://www.gongdong.or.kr/front";
 
-        String result = m_httpRequest.requestGet(url, url, "utf-8");
+        String result = m_app.m_httpRequest.requestGet(url, url, "utf-8");
         // Direct use of Pattern:
         String cafelist = Utils.getMatcherFirstString("(<select name=\\\"community)(.|\\n)*?(</select>)", result);
         //
@@ -246,11 +257,11 @@ public class MainActivity extends AppCompatActivity implements Runnable {
             System.out.println(option);
 
             String code = Utils.getMatcherFirstString("(?<=value=\\\")(.|\\n)*?(?=\\\")", option);
-            item.put("code", code);
+            item.put("commId", code);
 
             String title = option.replaceAll("<((.|\\n)*?)+>", "");
             title = title.trim();
-            item.put("title", title);
+            item.put("commName", title);
 
             m_arrayItems.add( item );
         }
