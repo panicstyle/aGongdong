@@ -422,13 +422,19 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 
 	        // link
 			String strLink = Utils.getMatcherFirstString("(?<=<a href=\\\")(.|\\n)*?(?=\\\")", matchstr);
-			String commId = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", strLink);
-			String boardId = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=&)", strLink);
-			String boardNo = Utils.getMatcherFirstString("(?<=number=)(.|\\n)*?(?=&)", strLink);
-
-			item.put("commId", commId);
-			item.put("boardId", boardId);
-			item.put("boardNo", boardNo);
+			if (isNoti == 2) {
+				String boardNo = Utils.getMatcherFirstString("(?<=/notice/)(.|\\n)*?(?=$)", strLink);
+				item.put("commId", "");
+				item.put("boardId", "");
+				item.put("boardNo", boardNo);
+			} else {
+				String commId = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", strLink);
+				String boardId = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=&)", strLink);
+				String boardNo = Utils.getMatcherFirstString("(?<=number=)(.|\\n)*?(?=&)", strLink);
+				item.put("commId", commId);
+				item.put("boardId", boardId);
+				item.put("boardNo", boardNo);
+			}
 
 	        // comment
 			String strComment = Utils.getMatcherFirstString("(?<=<font face=\\\"Tahoma\\\"><b>\\[)(.|\\n)*?(?=\\]</b></font>)", matchstr);

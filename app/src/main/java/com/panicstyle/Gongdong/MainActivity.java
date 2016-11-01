@@ -246,6 +246,8 @@ public class MainActivity extends AppCompatActivity implements Runnable {
             return false;
         }
 
+        login.PushRegister(context, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strRegId);
+
         if (!getData()) {
             m_LoginStatus = 0;
             return false;
