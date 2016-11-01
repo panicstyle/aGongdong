@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -150,18 +151,11 @@ public class MainActivity extends AppCompatActivity implements Runnable {
 
         m_app = (GongdongApplication)getApplication();
 
+        //        FirebaseMessaging.getInstance().subscribeToTopic("news");
+        m_app.m_strRegId = FirebaseInstanceId.getInstance().getToken();
+        System.out.println("RegID = " + m_app.m_strRegId);
+
         SetInfo setInfo = new SetInfo();
-
-        if (!setInfo.CheckVersionInfo(MainActivity.this)) {
-            AlertDialog.Builder notice = null;
-            notice = new AlertDialog.Builder( MainActivity.this );
-            notice.setTitle( "버전 업데이트 알림" );
-            notice.setMessage("1.첨부파일을 다운로드 할 수 있습니다.\n2.안드로이드 최신버전에서 첨부파일 저장기능을 위한 권한요청이 나타날 수 있습니다.");
-            notice.setPositiveButton(android.R.string.ok, null);
-            notice.show();
-
-            setInfo.SaveVersionInfo(MainActivity.this);
-        }
 
         isStoragePermissionGranted();
         if (!setInfo.GetUserInfo(MainActivity.this)) {
@@ -175,9 +169,28 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         }
         System.out.println("UserID = " +  m_app.m_strUserId);
 
-//        FirebaseMessaging.getInstance().subscribeToTopic("news");
-        m_app.m_strRegId = FirebaseInstanceId.getInstance().getToken();
-        System.out.println("RegID = " + m_app.m_strRegId);
+        if (!setInfo.CheckVersionInfo(MainActivity.this)) {
+            AlertDialog.Builder notice = null;
+            notice = new AlertDialog.Builder( MainActivity.this );
+            notice.setTitle( "버전 업데이트 알림" );
+            notice.setMessage("1.새글알림 기능이 추가되었습니다. 로그인설정에서 새글알림을 설정하세요.");
+            notice.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener(){
+                // 확인 버튼 클릭시 설정
+                public void onClick(DialogInterface dialog, int whichButton){
+                    showLoginActivity();
+                    dialog.dismiss();
+                }
+            });
+            notice.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener(){
+                // 확인 버튼 클릭시 설정
+                public void onClick(DialogInterface dialog, int whichButton){
+                    dialog.cancel();
+                }
+            });
+            notice.show();
+
+        }
+        setInfo.SaveVersionInfo(MainActivity.this);
 
         m_pd = ProgressDialog.show(this, "", "로딩중", true, false);
 
@@ -274,6 +287,12 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         return true;
     }
 
+    public void showLoginActivity() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivityForResult(intent, SETUP_CODE);
+
+        return;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

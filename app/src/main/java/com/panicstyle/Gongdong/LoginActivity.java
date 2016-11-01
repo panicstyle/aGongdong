@@ -20,6 +20,7 @@ public class LoginActivity extends AppCompatActivity implements Runnable {
 	private ProgressDialog m_pd;
 	private int m_LoginStatus;
 	GongdongApplication m_app;
+	private String m_strErrorMsg;
 
 
 	public void onCreate(Bundle savedInstanceState) {
@@ -77,6 +78,13 @@ public class LoginActivity extends AppCompatActivity implements Runnable {
 				getParent().setResult(Activity.RESULT_OK);
 			}
 			finish();
+		} else {
+			AlertDialog.Builder ab = null;
+			ab = new AlertDialog.Builder( this );
+			ab.setMessage( "로그인을 실패했습니다.\n오류내용 : " + m_strErrorMsg + "\n아이디와 비밀번호를 다시 한번 확인하세요.");
+			ab.setPositiveButton(android.R.string.ok, null);
+			ab.setTitle("로그인 오류");
+			ab.show();
 		}
 	}
 
@@ -85,29 +93,31 @@ public class LoginActivity extends AppCompatActivity implements Runnable {
 		EditText textPW = (EditText) findViewById(R.id.password);
 		Switch switchYN = (Switch) findViewById(R.id.pusy_yn);
 
-		m_setInfo.m_userId = textID.getText().toString();
-		m_setInfo.m_userPw = textPW.getText().toString();
-		m_setInfo.m_pushYN = switchYN.isChecked();
+		String userId = textID.getText().toString();
+		String userPw = textPW.getText().toString();
+		boolean pushYN = switchYN.isChecked();
+
+		System.out.println("Login userId : " + userId);
+		System.out.println("Login userPw : " + userPw);
 
 		Login login = new Login();
-		int loginStatus = login.LoginTo(this, m_app.m_httpRequest, m_setInfo.m_userId, m_setInfo.m_userPw);
-		String strErrorMsg = login.m_strErrorMsg;
+		int loginStatus = login.LoginTo(this, m_app.m_httpRequest, userId, userPw);
+		m_strErrorMsg = login.m_strErrorMsg;
 
 		if (loginStatus <= 0) {
-			AlertDialog.Builder ab = null;
-			ab = new AlertDialog.Builder( this );
-			ab.setMessage( "로그인을 실패했습니다.\n오류내용 : " + strErrorMsg + "\n아이디와 비밀번호를 다시 한번 확인하세요.");
-			ab.setPositiveButton(android.R.string.ok, null);
-			ab.setTitle("로그인 오류");
-			ab.show();
-
+			m_LoginStatus = -1;
 			return ;
-		}
-		m_setInfo.SaveUserInfo(this);
+		} else {
+			m_setInfo.m_userId = userId;
+			m_setInfo.m_userPw = userPw;
+			m_setInfo.m_pushYN = pushYN;
+			m_setInfo.SaveUserInfo(this);
 
-		m_LoginStatus = 1;
+			m_LoginStatus = 1;
+		}
 
 		m_app.m_strUserId = m_setInfo.m_userId;
+		m_app.m_strUserPw = m_setInfo.m_userPw;
 		m_app.m_nPushYN = m_setInfo.m_pushYN;
 
 //		Toast.makeText(this, "저장합니다", Toast.LENGTH_SHORT).show();

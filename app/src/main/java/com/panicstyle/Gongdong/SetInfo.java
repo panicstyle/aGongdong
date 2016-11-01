@@ -93,7 +93,7 @@ public class SetInfo {
             if (obj.has("push_yn")) {
                 m_pushYN = obj.getBoolean("push_yn");
             } else {
-                m_pushYN = true;
+                m_pushYN = false;
             }
 
         } catch(FileNotFoundException e){

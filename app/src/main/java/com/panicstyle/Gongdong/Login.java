@@ -38,16 +38,19 @@ public class Login {
 				"</params>\n" +
 				"</methodCall>";
 
+		System.out.println("Login Param : " + strLoginParam);
+
 		// Logout
 //		httpRequest.requestGet(httpClient, httpContext, logoutURL, referer, "utf-8");
 		// Login 호출후 302 리턴됨. /front 를 다시 호출해야지 로그인 결과를 알 수 있음.
 		String result = httpRequest.requestPost(url, strLoginParam, referer, "utf-8");
+		System.out.println("Login Result : " + result);
 
 		if (result.indexOf("<error>0</error>") <= 0) {
 			String errMsg = "Login Fail";
 	    	System.out.println(errMsg);
 			// link
-			String m_strErrorMsg = Utils.getMatcherFirstString("(?<=<message>)(.|\\n)*?(?=</message>)", result);
+			m_strErrorMsg = Utils.getMatcherFirstString("(?<=<message>)(.|\\n)*?(?=</message>)", result);
 	        return 0;
 		}
     	System.out.println("Login Success");
