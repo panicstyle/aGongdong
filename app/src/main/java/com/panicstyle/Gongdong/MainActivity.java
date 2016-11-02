@@ -173,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
             AlertDialog.Builder notice = null;
             notice = new AlertDialog.Builder( MainActivity.this );
             notice.setTitle( "버전 업데이트 알림" );
-            notice.setMessage("1.새글알림 기능이 추가되었습니다. 로그인설정에서 새글알림을 설정하세요.");
+            notice.setMessage("1.새글알림 기능이 추가되었습니다. 로그인설정에서 새글알림을 설정하시겠습니까?");
             notice.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener(){
                 // 확인 버튼 클릭시 설정
                 public void onClick(DialogInterface dialog, int whichButton){
