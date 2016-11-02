@@ -40,14 +40,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ArticleWriteActivity extends AppCompatActivity implements Runnable {
-    private HttpRequest m_httpRequest;
     private ProgressDialog m_pd;
     private int m_nMode;
-    private String m_Title;
-    private String m_Content;
-    private String m_BoardID;
-    private String m_CommID;
-    private String m_BoardNo;
+    private String m_strBoardTitle;
+    private String m_strBoardContent;
+    private String m_strBoardId;
+    private String m_strCommId;
+    private String m_strBoardNo;
     private boolean m_bSaveStatus;
     private String m_ErrorMsg;
     private boolean[] m_arrayAttached;
@@ -55,13 +54,13 @@ public class ArticleWriteActivity extends AppCompatActivity implements Runnable 
     private int m_nSelected = 0;
     private int m_nAttached = 0;
     private static final int SELECT_PHOTO = 0;
+    private GongdongApplication m_app;
 
-	public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_article_write);
 
-        GongdongApplication app = (GongdongApplication)getApplication();
-        m_httpRequest = app.m_httpRequest;
+        m_app = (GongdongApplication)getApplication();
 
         m_arrayAttached = new boolean[5];
         m_arrayUri = new Uri[5];
@@ -71,12 +70,12 @@ public class ArticleWriteActivity extends AppCompatActivity implements Runnable 
 
         if (m_nMode == 1) {
             setTitle("글수정");
-            m_Title = Utils.repalceHtmlSymbol(m_Title);
-            m_Content = Utils.repalceHtmlSymbol(m_Content);
+            m_strBoardTitle = Utils.repalceHtmlSymbol(m_strBoardTitle);
+            m_strBoardContent = Utils.repalceHtmlSymbol(m_strBoardContent);
             EditText textTitle = (EditText)findViewById(R.id.editTitle);
-            textTitle.setText(m_Title);
+            textTitle.setText(m_strBoardTitle);
             EditText textContent = (EditText) findViewById(R.id.editContent);
-            textContent.setText(m_Content);
+            textContent.setText(m_strBoardContent);
         } else {
             setTitle("글쓰기");
         }
@@ -87,22 +86,22 @@ public class ArticleWriteActivity extends AppCompatActivity implements Runnable 
 //    	Intent intent = getIntent();  // 값을 가져오는 인텐트 객체생성
     	Bundle extras = getIntent().getExtras();
     	// 가져온 값을 set해주는 부분
-        m_nMode = extras.getInt("MODE");
-        m_CommID = extras.getString("COMMID");
-        m_BoardID = extras.getString("BOARDID");
-        m_BoardNo = extras.getString("BOARDNO");
-        m_Title = extras.getString("TITLE");
-        m_Content = extras.getString("CONTENT");
+        m_nMode = extras.getInt("mode");
+        m_strCommId = extras.getString("commId");
+        m_strBoardId = extras.getString("boardId");
+        m_strBoardNo = extras.getString("boardNo");
+        m_strBoardTitle = extras.getString("boardTitle");
+        m_strBoardContent = extras.getString("boardContent");
     }
 	
     public void SaveData() {
     	EditText textTitle = (EditText)findViewById(R.id.editTitle);
     	EditText textContent = (EditText)findViewById(R.id.editContent);
 
-    	m_Title = textTitle.getText().toString();
-    	m_Content = textContent.getText().toString();
+    	m_strBoardTitle = textTitle.getText().toString();
+    	m_strBoardContent = textContent.getText().toString();
     	
-    	if (m_Title.length() <= 0 || m_Content.length() <= 0) {
+    	if (m_strBoardTitle.length() <= 0 || m_strBoardContent.length() <= 0) {
             AlertDialog.Builder notice = null;
             notice = new AlertDialog.Builder( ArticleWriteActivity.this );
             notice.setTitle("알림");
@@ -157,13 +156,13 @@ public class ArticleWriteActivity extends AppCompatActivity implements Runnable 
 
     protected boolean PostData() {
 
-        String url = "http://cafe.gongdong.or.kr/cafe.php?mode=up&p2=&p1=" + m_CommID + "&sort=" + m_BoardID;
+        String url = "http://cafe.gongdong.or.kr/cafe.php?mode=up&p2=&p1=" + m_strCommId + "&sort=" + m_strBoardId;
 
         return PostDataCore(url);
     }
 
     protected boolean PostModifyData() {
-        String url = "http://cafe.gongdong.or.kr/cafe.php?mode=edit&p2=&p1=" + m_CommID + "&sort=" + m_BoardID;
+        String url = "http://cafe.gongdong.or.kr/cafe.php?mode=edit&p2=&p1=" + m_strCommId + "&sort=" + m_strBoardId;
 
         return PostDataCore(url);
     }
@@ -175,12 +174,12 @@ public class ArticleWriteActivity extends AppCompatActivity implements Runnable 
         ContentType contentType = ContentType.create(HTTP.PLAIN_TEXT_TYPE, HTTP.UTF_8);
 //        ByteArrayBody bab = new ByteArrayBody(imageBytes, "pic.png");
 //        StringBody sbOwner = new StringBody(StaticData.loggedUserId, ContentType.TEXT_PLAIN);
-        StringBody sbNumber = new StringBody(m_BoardNo, contentType);
+        StringBody sbNumber = new StringBody(m_strBoardNo, contentType);
         StringBody sbUseTag = new StringBody("n", contentType);
-        StringBody sbSubject = new StringBody(m_Title, contentType);
+        StringBody sbSubject = new StringBody(m_strBoardTitle, contentType);
         StringBody sbSample = new StringBody("", contentType);
         StringBody sbSub_Sort = new StringBody("0", contentType);
-        StringBody sbContent = new StringBody(m_Content, contentType);
+        StringBody sbContent = new StringBody(m_strBoardContent, contentType);
         HttpEntity entity;
         try {
             Charset chars = Charset.forName("UTF-8");
@@ -210,7 +209,7 @@ public class ArticleWriteActivity extends AppCompatActivity implements Runnable 
                 }
             }
             entity = builder.build();
-            String result = m_httpRequest.requestPostWithAttach(url, entity, "", "utf-8", boundary);
+            String result = m_app.m_httpRequest.requestPostWithAttach(url, entity, "", "utf-8", boundary);
 
             if (!result.contains("<meta http-equiv=\"refresh\" content=\"0;url=/cafe.php?sort=")) {
                 m_ErrorMsg = Utils.getMatcherFirstString("(?<=window.alert\\(\\\")(.|\\n)*?(?=\\\")", result);

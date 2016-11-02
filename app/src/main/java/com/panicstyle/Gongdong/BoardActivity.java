@@ -27,10 +27,10 @@ import java.util.regex.Matcher;
 public class BoardActivity extends AppCompatActivity implements Runnable {
     private ListView m_listView;
     private ProgressDialog m_pd;
-	protected String m_boardTitle;
-	protected String m_boardCode;
-    private HttpRequest m_httpRequest;
+	protected String m_strCommTitle;
+	protected String m_strCommId;
     List<HashMap<String, Object>> m_arrayItems;
+    private GongdongApplication m_app;
 
     private static class EfficientAdapter extends BaseAdapter {
         private LayoutInflater mInflater;
@@ -56,7 +56,7 @@ public class BoardActivity extends AppCompatActivity implements Runnable {
         public View getView(int position, View convertView, ViewGroup parent) {
             HashMap<String, Object> item;
             item = arrayItems.get(position);
-            String title = (String)item.get("title");
+            String title = (String)item.get("boardName");
             int isNew = (Integer)item.get("isNew");
             int nType = (Integer)item.get("type");
 
@@ -109,20 +109,24 @@ public class BoardActivity extends AppCompatActivity implements Runnable {
 
                 if (nType == 1 || nType == 2) return;
 
-                String title = (String) item.get("title");
-                String link = (String) item.get("link");
+                String boardName = (String) item.get("boardName");
+//                String link = (String) item.get("link");
+                String commId = (String) item.get("commId");
+                String boardId = (String) item.get("boardId");
 
                 int isCal = (Integer) item.get("isCal");
 
                 if (isCal == 1) {
                     Intent intent = new Intent(BoardActivity.this, CalendarActivity.class);
-                    intent.putExtra("ITEMS_TITLE", title);
-                    intent.putExtra("ITEMS_LINK", link);
+                    intent.putExtra("boardName", boardName);
+                    intent.putExtra("commId", commId);
+                    intent.putExtra("boardId", boardId);
                     startActivity(intent);
                 } else {
                     Intent intent = new Intent(BoardActivity.this, ItemsActivity.class);
-                    intent.putExtra("ITEMS_TITLE", title);
-                    intent.putExtra("ITEMS_LINK", link);
+                    intent.putExtra("boardName", boardName);
+                    intent.putExtra("commId", commId);
+                    intent.putExtra("boardId", boardId);
                     startActivity(intent);
                 }
             }
@@ -132,12 +136,11 @@ public class BoardActivity extends AppCompatActivity implements Runnable {
         AdRequest adRequest = new AdRequest.Builder().build();
         adView.loadAd(adRequest);
 
-        GongdongApplication app = (GongdongApplication)getApplication();
-        m_httpRequest = app.m_httpRequest;
+        m_app = (GongdongApplication)getApplication();
         
         intenter();
 
-        setTitle(m_boardTitle);
+        setTitle(m_strCommTitle);
 
         m_arrayItems = new ArrayList<>();
 
@@ -173,16 +176,14 @@ public class BoardActivity extends AppCompatActivity implements Runnable {
     	Bundle extras = getIntent().getExtras();
     	// 가져온 값을 set해주는 부분
     	
-    	m_boardTitle = extras.getString("BOARD_TITLE");
-    	m_boardCode = extras.getString("BOARD_CODE");
+    	m_strCommTitle = extras.getString("commName");
+    	m_strCommId = extras.getString("commId");
     }
 
     protected boolean getData() {
 		
-		String url = "http://cafe.gongdong.or.kr/cafe.php?code=" + m_boardCode;
-		HttpRequest httpRequest = new HttpRequest();
-
-		String result = m_httpRequest.requestGet(url, "", "utf-8");
+		String url = "http://cafe.gongdong.or.kr/cafe.php?code=" + m_strCommId;
+		String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
 
         // 각 항목 찾기
         HashMap<String, Object> item;
@@ -204,11 +205,16 @@ public class BoardActivity extends AppCompatActivity implements Runnable {
             
             // link
             String strLink = Utils.getMatcherFirstString("(?<=<a href=\\\")(.|\\n)*?(?=\\\")", matchstr);
-            item.put("link", strLink);
+		    String commId = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", strLink);
+       	    String boardId = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=$)", strLink);
+//            item.put("link", strLink);
+            item.put("commId", commId);
+            item.put("boardId", boardId);
+
 	        // title
 	        String title = matchstr.replaceAll("<((.|\\n)*?)+>", "");
 	        title = title.trim();
-            item.put("title", title);
+            item.put("boardName", title);
             // new
             if (matchstr.contains("images/new_s.gif")) {
                 item.put("isNew", 1);

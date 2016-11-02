@@ -44,15 +44,13 @@ public class CalendarActivity extends AppCompatActivity implements Runnable {
     private CaldroidFragment dialogCaldroidFragment;
     private Date prevDate = null;
     private String m_strErrorMsg;
-    protected String m_itemsTitle;
-    protected String m_itemsLink;
-    protected String m_CommID;
-    protected String m_BoardID;
+    protected String m_strCommId;
+    protected String m_strBoardId;
+    protected String m_strBoardName;
     private int m_isFirst;
 
     private ProgressDialog m_pd;
     protected int m_LoginStatus;
-    private HttpRequest m_httpRequest;
 
     private ListView m_listView;
     private List<HashMap<String, Object>> m_arrayItems;
@@ -62,6 +60,8 @@ public class CalendarActivity extends AppCompatActivity implements Runnable {
     private int m_nYear;
     private int m_nMonth;
     private int m_nDay;
+
+    private GongdongApplication m_app;
 
     private void setCustomResourceForDates() {
         DateFormat sdFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -274,12 +274,11 @@ public class CalendarActivity extends AppCompatActivity implements Runnable {
             }
         });
 
-        GongdongApplication app = (GongdongApplication)getApplication();
-        m_httpRequest = app.m_httpRequest;
+        m_app = (GongdongApplication)getApplication();
 
         intenter();
 
-        setTitle(m_itemsTitle);
+        setTitle(m_strBoardName);
 
         m_arrayItems = new ArrayList<HashMap<String, Object>>();
 
@@ -298,7 +297,7 @@ public class CalendarActivity extends AppCompatActivity implements Runnable {
         if (!getData()) {
             // Login
             Login login = new Login();
-            m_LoginStatus = login.LoginTo(CalendarActivity.this, m_httpRequest);
+            m_LoginStatus = login.LoginTo(CalendarActivity.this, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strUserPw);
             m_strErrorMsg = login.m_strErrorMsg;
 
             if (m_LoginStatus > 0) {
@@ -363,23 +362,25 @@ public class CalendarActivity extends AppCompatActivity implements Runnable {
     public void intenter() {
 //    	Intent intent = getIntent();  // 값을 가져오는 인텐트 객체생성
         Bundle extras = getIntent().getExtras();
-        m_itemsTitle = extras.getString("ITEMS_TITLE").toString();
-        m_itemsLink = extras.getString("ITEMS_LINK").toString();
 
-        m_CommID = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", m_itemsLink);
-        m_BoardID = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=$)", m_itemsLink);
+        m_strCommId = extras.getString("commId");
+        m_strBoardId = extras.getString("boardId");
+        m_strBoardName = extras.getString("boardName");
+
+//        m_itemsLink = extras.getString("boardId").toString();
     }
 
     protected boolean getData() {
         // 각 항목 찾기
         String url;
+        // view-source:http://cafe.gongdong.or.kr/cafe.php?p1=menbal&getYear=2016&getMonth=10&formx=&fieldx=&sort=cal43&mode=
         if (m_isFirst == 1) {
-            url = "http://cafe.gongdong.or.kr/" + m_itemsLink;
+            url = "http://cafe.gongdong.or.kr/cafe.php?p1=" + m_strCommId + "&sort=" + m_strBoardId;
         } else {
-            url = "http://cafe.gongdong.or.kr/" + m_itemsLink + "&getYear=" + m_nYear + "&getMonth=" + m_nMonth + "&formx=&fieldx=&mode=";
+            url = "http://cafe.gongdong.or.kr/cafe.php?p1=" + m_strCommId + "&sort=" + m_strBoardId + "&getYear=" + m_nYear + "&getMonth=" + m_nMonth + "&formx=&fieldx=&mode=";
         }
         // /cafe.php?p1=menbal&sort=cal43&getYear=2016&getMonth=1&formx=&fieldx=&mode=
-        String result = m_httpRequest.requestGet(url, url, "utf-8");
+        String result = m_app.m_httpRequest.requestGet(url, url, "utf-8");
 
         if (result.length() < 200) {
             return false;

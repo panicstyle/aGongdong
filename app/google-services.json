@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "61638236478",
+    "firebase_url": "https://gongdong-push.firebaseio.com",
+    "project_id": "gongdong-push",
+    "storage_bucket": "gongdong-push.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:61638236478:android:410a15401074fa50",
+        "android_client_info": {
+          "package_name": "com.panicstyle.Gongdong"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "61638236478-t7r6gfrt8kg5iah2arm5ev7c90supta2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5rMZg-2TLudv5WoiUhF2mZt2d-QXOia8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

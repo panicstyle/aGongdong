@@ -47,7 +47,6 @@ import java.util.regex.Pattern;
 
 public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 	/** Called when the activity is first created. */
-    private HttpRequest m_httpRequest;
     private ProgressDialog m_pd;
     private List<HashMap<String, Object>> m_arrayItems;
     private int m_nThreadMode = 0;
@@ -62,8 +61,8 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     static final int REQUEST_COMMENT_MODIFY_VIEW = 6;
     static final int REQUEST_COMMENT_DELETE_VIEW = 7;
 
-    private String m_strCommID;
-    private String m_strBoardID;
+    private String m_strCommId;
+    private String m_strBoardId;
     private String m_strBoardNo;
     private String m_strCommentNo;
     private String m_strComment;
@@ -72,18 +71,20 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     private int m_nPNotice;
     private int m_nNotice;
     private int m_nMode;
-    private String m_strSubject;
+    private String m_strBoardTitle;
     private String m_strName;
     private String m_strID;
     private String m_strHit;
     private String m_strDate;
-    private String m_strLink;
+//    private String m_strLink;
 
-    private String m_strContent;
+    private String m_strBoardContent;
     private String m_strProfile;
     private String m_strHTML;
 
     private String m_strUrl;
+
+    private GongdongApplication m_app;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -96,8 +97,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         AdRequest adRequest = new AdRequest.Builder().build();
         adView.loadAd(adRequest);
 
-        GongdongApplication app = (GongdongApplication)getApplication();
-        m_httpRequest = app.m_httpRequest;
+        m_app = (GongdongApplication)getApplication();
 
         intenter();
 
@@ -129,7 +129,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
                 // Login
                 Login login = new Login();
 
-                m_nLoginStatus = login.LoginTo(ArticleViewActivity.this, m_httpRequest);
+                m_nLoginStatus = login.LoginTo(ArticleViewActivity.this, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strUserPw);
 
                 if (m_nLoginStatus > 0) {
                     if (m_nPNotice != 1) {
@@ -228,7 +228,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
             LinearLayout ll;
 
             tvSubject = (TextView) findViewById(R.id.subject);
-            tvSubject.setText(m_strSubject);
+            tvSubject.setText(m_strBoardTitle);
 
             tvName = (TextView) findViewById(R.id.name);
             tvName.setText(m_strName);
@@ -329,37 +329,45 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 //    	Intent intent = getIntent();  // 값을 가져오는 인텐트 객체생성
     	Bundle extras = getIntent().getExtras();
     	// 가져온 값을 set해주는 부분
-    	m_nPNotice = extras.getInt("ISPNOTICE");
-    	m_nNotice = extras.getInt("ISNOTICE");
-        m_nMode = extras.getInt("MODE");
-    	m_strSubject = extras.getString("SUBJECT");
-    	m_strName = extras.getString("USERNAME");
-    	m_strID = extras.getString("USERID");
-    	m_strDate = extras.getString("DATE");
-    	m_strLink = extras.getString("LINK");
-        m_strHit = extras.getString("HIT");
+    	m_nPNotice = extras.getInt("isPNotice");
+    	m_nNotice = extras.getInt("isNotice");
+        m_nMode = extras.getInt("mode");
+    	m_strBoardTitle = extras.getString("boardTitle");
+    	m_strName = extras.getString("userName");
+    	m_strID = extras.getString("userId");
+    	m_strDate = extras.getString("date");
+//    	m_strLink = extras.getString("link");
+        m_strHit = extras.getString("hit");
 
+        m_strCommId = extras.getString("commId");
+        m_strBoardId = extras.getString("boardId");
+        m_strBoardNo = extras.getString("boardNo");
+
+/*
         if (m_nPNotice != 1) {
-            m_strCommID = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", m_strLink);
-            m_strBoardID = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=&)", m_strLink);
+            m_strCommId = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", m_strLink);
+            m_strBoardId = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=&)", m_strLink);
             m_strBoardNo = Utils.getMatcherFirstString("(?<=number=)(.|\\n)*?(?=&)", m_strLink);
         } else {
             m_strBoardNo = Utils.getMatcherFirstString("(?<=http://www.gongdong.or.kr/notice/)(.|\\n)*?(?=$)", m_strLink);
-            m_strCommID = "";
-            m_strBoardID = "";
+            m_strCommId = "";
+            m_strBoardId = "";
         }
+*/
     }
 
     protected boolean getData() {
 
-		String url = "http://cafe.gongdong.or.kr" + m_strLink;
-        String result = m_httpRequest.requestGet(url, url, "utf-8");
+        // http://cafe.gongdong.or.kr/cafe.php?sort=45&sub_sort=&page=&startpage=&keyfield=&key_bs=&p1=menbal&p2=&p3=&number=1280159&mode=view
+		String url = "http://cafe.gongdong.or.kr/cafe.php?sort=" + m_strBoardId + "&sub_sort=&page=&startpage=&keyfield=&key_bs=&p1="
+                + m_strCommId + "&p2=&p3=&number=" + m_strBoardNo + "&mode=view";
+        String result = m_app.m_httpRequest.requestGet(url, url, "utf-8");
 
         if (result.length() < 200) {
         	return false;
         }
 
-        m_strContent = Utils.getMatcherFirstString("(?<=<!---- contents start 본문 표시 부분 DJ ---->)(.|\\n)*?(?=<!---- contents end ---->)", result);
+        m_strBoardContent = Utils.getMatcherFirstString("(?<=<!---- contents start 본문 표시 부분 DJ ---->)(.|\\n)*?(?=<!---- contents end ---->)", result);
         String strImage = Utils.getMatcherFirstString("(<p align=center><img onload=\\\"resizeImage2[(]this[)]\\\")(.|\\n)*?(</td>)", result);
         String strCommentBody = Utils.getMatcherFirstString("(?<=<!-- 댓글 시작 -->)(.|\\n)*?(?=<!-- 댓글 끝 -->)", result);
 
@@ -421,24 +429,25 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         String strResize = "<script>function resizeImage2(mm){var width = eval(mm.width);var height = eval(mm.height);if( width > 300 ){var p_height = 300 / width;var new_height = height * p_height;eval(mm.width = 300);eval(mm.height = new_height);}} function image_open(src, mm) {var src1 = 'image2.php?imgsrc='+src;window.open(src1,'image','width=1,height=1,scrollbars=yes,resizable=yes');}</script>";
         String strBottom = "</body></html>";
 
-    	m_strHTML = strHeader + strResize + m_strContent + strImage + strAttach + strBottom;
+    	m_strHTML = strHeader + strResize + m_strBoardContent + strImage + strAttach + strBottom;
 
         return true;
     }
 
     protected boolean getDataPNotice() {
 
-        String url = m_strLink;
-        HttpRequest httpRequest = new HttpRequest();
-        String result = m_httpRequest.requestGet(url, "", "utf-8");
+//        String url = m_strLink;
+//        http://www.gongdong.or.kr/notice/343365
+        String url = "http://www.gongdong.or.kr/notice/" + m_strBoardNo;
+        String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
 
         if (result.length() < 200) {
             return false;
         }
 
-        m_strContent = Utils.getMatcherFirstString("(<!--BeforeDocument)(.|\\n)*?(</div><!--AfterDocument)", result);
-        m_strContent = m_strContent.replaceAll("(<!--)(.|\\n)*?(-->)", "");
-        m_strContent = m_strContent.replaceAll("<!--AfterDocument", "");
+        m_strBoardContent = Utils.getMatcherFirstString("(<!--BeforeDocument)(.|\\n)*?(</div><!--AfterDocument)", result);
+        m_strBoardContent = m_strBoardContent.replaceAll("(<!--)(.|\\n)*?(-->)", "");
+        m_strBoardContent = m_strBoardContent.replaceAll("<!--AfterDocument", "");
 
         String strImage = Utils.getMatcherFirstString("(?<=<ul class=\"files\">)(.|\\n)*?(?=</ul>)", result);
         String strCommentBody = Utils.getMatcherFirstString("(?<=<div class=\"feedbackList\" id=\"reply\">)(.|\\n)*?(?=<form action=)", result);
@@ -497,7 +506,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         String strResize = "<script>function resizeImage2(mm){var width = eval(mm.width);var height = eval(mm.height);if( width > 300 ){var p_height = 300 / width;var new_height = height * p_height;eval(mm.width = 300);eval(mm.height = new_height);}} function image_open(src, mm) {var src1 = 'image2.php?imgsrc='+src;window.open(src1,'image','width=1,height=1,scrollbars=yes,resizable=yes');}</script>";
         String strBottom = "</body></html>";
 
-        m_strHTML = strHeader + strResize + m_strContent + strImage + strBottom;
+        m_strHTML = strHeader + strResize + m_strBoardContent + strImage + strBottom;
 
         return true;
     }
@@ -561,36 +570,36 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     public void addReArticle() {
         Intent intent = new Intent(this, ArticleWriteActivity.class);
         int nMode = 0;      // i is modify article
-        intent.putExtra("COMMID", m_strCommID);
-        intent.putExtra("BOARDID", m_strBoardID);
-        intent.putExtra("BOARDNO", m_strBoardNo);
-        intent.putExtra("TITLE", "");
-        intent.putExtra("CONTENT", "");
+        intent.putExtra("commId", m_strCommId);
+        intent.putExtra("boardId", m_strBoardId);
+        intent.putExtra("boardNo", m_strBoardNo);
+        intent.putExtra("boardTitle", "");
+        intent.putExtra("boardContent", "");
         startActivityForResult(intent, REQUEST_WRITE);
     }
 
     public void modifyArticle() {
         Intent intent = new Intent(this, ArticleWriteActivity.class);
         int nMode = 1;      // i is modify article
-        intent.putExtra("MODE", nMode);
-        intent.putExtra("COMMID", m_strCommID);
-        intent.putExtra("BOARDID", m_strBoardID);
-        intent.putExtra("BOARDNO", m_strBoardNo);
-        intent.putExtra("TITLE", m_strSubject);
-        intent.putExtra("CONTENT", m_strContent);
+        intent.putExtra("mode", nMode);
+        intent.putExtra("commId", m_strCommId);
+        intent.putExtra("boardId", m_strBoardId);
+        intent.putExtra("boardNo", m_strBoardNo);
+        intent.putExtra("boardTitle", m_strBoardTitle);
+        intent.putExtra("boardContent", m_strBoardContent);
         startActivityForResult(intent, REQUEST_MODIFY);
     }
 
     public void addComment() {
         Intent intent = new Intent(this, CommentWriteActivity.class);
         int nMode = 0;      // i is modify article
-        intent.putExtra("MODE", nMode);
-        intent.putExtra("ISPNOTICE", m_nPNotice);
-        intent.putExtra("COMMID", m_strCommID);
-        intent.putExtra("BOARDID", m_strBoardID);
-        intent.putExtra("BOARDNO", m_strBoardNo);
-        intent.putExtra("COMMENTNO", "");
-        intent.putExtra("COMMENT", "");
+        intent.putExtra("mode", nMode);
+        intent.putExtra("isPNotice", m_nPNotice);
+        intent.putExtra("commId", m_strCommId);
+        intent.putExtra("boardId", m_strBoardId);
+        intent.putExtra("boardNo", m_strBoardNo);
+        intent.putExtra("commentNo", "");
+        intent.putExtra("comment", "");
         startActivityForResult(intent, REQUEST_COMMENT_WRITE);
     }
 
@@ -614,13 +623,13 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     }
 
     protected void runDeleteArticle() {
-		String url = "http://cafe.gongdong.or.kr/cafe.php?mode=del&sort=" + m_strBoardID + "&sub_sort=&p1=" + m_strCommID + "&p2=";
+		String url = "http://cafe.gongdong.or.kr/cafe.php?mode=del&sort=" + m_strBoardId + "&sub_sort=&p1=" + m_strCommId + "&p2=";
 
         ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
         nameValuePairs.add(new BasicNameValuePair("number", m_strBoardNo));
         nameValuePairs.add(new BasicNameValuePair("passwd", ""));
 
-		String result = m_httpRequest.requestPost(url, nameValuePairs, url, "utf-8");
+		String result = m_app.m_httpRequest.requestPost(url, nameValuePairs, url, "utf-8");
 
         m_bDeleteStatus = true;
         if (!result.contains("<meta http-equiv=\"refresh\" content=\"0;url=/cafe.php?sort=")) {
@@ -672,12 +681,12 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     public void ReplayComment() {
         Intent intent = new Intent(this, CommentWriteActivity.class);
         int nMode = 0;
-        intent.putExtra("MODE", nMode);
-        intent.putExtra("COMMID", m_strCommID);
-        intent.putExtra("BOARDID", m_strBoardID);
-        intent.putExtra("BOARDNO", m_strBoardNo);
-        intent.putExtra("COMMENTNO", m_strCommentNo);
-        intent.putExtra("COMMENT",  "");
+        intent.putExtra("mode", nMode);
+        intent.putExtra("commId", m_strCommId);
+        intent.putExtra("boardId", m_strBoardId);
+        intent.putExtra("boardNo", m_strBoardNo);
+        intent.putExtra("commentNo", m_strCommentNo);
+        intent.putExtra("comment",  "");
         startActivityForResult(intent, REQUEST_COMMENT_WRITE);
     }
 
@@ -685,13 +694,13 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     protected void ModifyComment() {
         Intent intent = new Intent(this, CommentWriteActivity.class);
         int nMode = 1;
-        intent.putExtra("MODE", nMode);
-        intent.putExtra("ISPNOTICE", m_nPNotice);
-        intent.putExtra("COMMID", m_strCommID);
-        intent.putExtra("BOARDID", m_strBoardID);
-        intent.putExtra("BOARDNO",  m_strBoardNo);
-        intent.putExtra("COMMENTNO",  m_strCommentNo);
-        intent.putExtra("COMMENT",  m_strComment);
+        intent.putExtra("mode", nMode);
+        intent.putExtra("isPNotice", m_nPNotice);
+        intent.putExtra("commId", m_strCommId);
+        intent.putExtra("boardId", m_strBoardId);
+        intent.putExtra("boardNo",  m_strBoardNo);
+        intent.putExtra("commentNo",  m_strCommentNo);
+        intent.putExtra("comment",  m_strComment);
         startActivityForResult(intent, REQUEST_COMMENT_MODIFY);
     }
 
@@ -717,12 +726,12 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     protected void runDeleteComment() {
 		HttpRequest httpRequest = new HttpRequest();
 		
-		String url = "http://cafe.gongdong.or.kr/cafe.php?mode=del_reply&sort=" + m_strBoardID + "&sub_sort=&p1=" + m_strCommID + "&p2=";
+		String url = "http://cafe.gongdong.or.kr/cafe.php?mode=del_reply&sort=" + m_strBoardId + "&sub_sort=&p1=" + m_strCommId + "&p2=";
 
         ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
         nameValuePairs.add(new BasicNameValuePair("number", m_strCommentNo));
 
-		String result  = m_httpRequest.requestPost(url, nameValuePairs, url, "utf-8");
+		String result  = m_app.m_httpRequest.requestPost(url, nameValuePairs, url, "utf-8");
 
         m_bDeleteStatus = true;
         if (!result.contains("<meta http-equiv=\"refresh\" content=\"0;url=/cafe.php?sort=")) {
@@ -747,7 +756,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
                 "</params>\n" +
                 "</methodCall>";
         String strReferer = "http://www.gongdong.or.kr/index.php?mid=notice&document_srl=" + m_strBoardNo + "&act=dispBoardDeleteComment&comment_srl=" + m_strCommentNo;
-        String result  = m_httpRequest.requestPost(url, strPostParam, strReferer, "utf-8");
+        String result  = m_app.m_httpRequest.requestPost(url, strPostParam, strReferer, "utf-8");
 
         m_bDeleteStatus = true;
         if (!result.contains("<error>0</error>")) {

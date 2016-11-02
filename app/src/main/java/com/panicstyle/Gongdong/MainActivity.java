@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -29,6 +30,7 @@ import java.util.regex.Matcher;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 public class MainActivity extends AppCompatActivity implements Runnable {
     private ListView m_listView;
@@ -37,10 +39,8 @@ public class MainActivity extends AppCompatActivity implements Runnable {
     private int m_LoginStatus;
     static final int SETUP_CODE = 1234;
     private String m_strErrorMsg = "";
-
     private List<HashMap<String, String>> m_arrayItems;
-
-    private HttpRequest m_httpRequest;
+    private GongdongApplication m_app;
 
     private static class EfficientAdapter extends BaseAdapter {
         private LayoutInflater mInflater;
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
             HashMap<String, String> item;;
             String title;
             item = arrayItems.get(position);
-            title = item.get("title");
+            title = item.get("commName");
 
             holder.title.setText(title);
 
@@ -134,12 +134,12 @@ public class MainActivity extends AppCompatActivity implements Runnable {
                   String title = null;
                   String code = null;
                   item = (HashMap<String, String>) m_arrayItems.get(position);
-                  title = (String) item.get("title");
-                  code = (String) item.get("code");
+                  title = (String) item.get("commName");
+                  code = (String) item.get("commId");
 
                   Intent intent = new Intent(MainActivity.this, BoardActivity.class);
-                  intent.putExtra("BOARD_TITLE", title);
-                  intent.putExtra("BOARD_CODE", code);
+                  intent.putExtra("commName", title);
+                  intent.putExtra("commId", code);
                   startActivity(intent);
               }
           });
@@ -149,24 +149,48 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         AdRequest adRequest = new AdRequest.Builder().build();
         AdView.loadAd(adRequest);
 
-        GongdongApplication app = (GongdongApplication)getApplication();
-        m_httpRequest = app.m_httpRequest;
+        m_app = (GongdongApplication)getApplication();
 
+        //        FirebaseMessaging.getInstance().subscribeToTopic("news");
+        m_app.m_strRegId = FirebaseInstanceId.getInstance().getToken();
+        System.out.println("RegID = " + m_app.m_strRegId);
 
         SetInfo setInfo = new SetInfo();
+
+        isStoragePermissionGranted();
+        if (!setInfo.GetUserInfo(MainActivity.this)) {
+            m_app.m_strUserId = "";
+            m_app.m_strUserPw = "";
+            m_app.m_nPushYN = true;
+        } else {
+            m_app.m_strUserId = setInfo.m_userId;
+            m_app.m_strUserPw = setInfo.m_userPw;
+            m_app.m_nPushYN = setInfo.m_pushYN;
+        }
+        System.out.println("UserID = " +  m_app.m_strUserId);
 
         if (!setInfo.CheckVersionInfo(MainActivity.this)) {
             AlertDialog.Builder notice = null;
             notice = new AlertDialog.Builder( MainActivity.this );
             notice.setTitle( "버전 업데이트 알림" );
-            notice.setMessage("1.첨부파일을 다운로드 할 수 있습니다.\n2.안드로이드 최신버전에서 첨부파일 저장기능을 위한 권한요청이 나타날 수 있습니다.");
-            notice.setPositiveButton(android.R.string.ok, null);
+            notice.setMessage("1.새글알림 기능이 추가되었습니다. 로그인설정에서 새글알림을 설정하시겠습니까?");
+            notice.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener(){
+                // 확인 버튼 클릭시 설정
+                public void onClick(DialogInterface dialog, int whichButton){
+                    showLoginActivity();
+                    dialog.dismiss();
+                }
+            });
+            notice.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener(){
+                // 확인 버튼 클릭시 설정
+                public void onClick(DialogInterface dialog, int whichButton){
+                    dialog.cancel();
+                }
+            });
             notice.show();
 
-            setInfo.SaveVersionInfo(MainActivity.this);
         }
-
-        isStoragePermissionGranted();
+        setInfo.SaveVersionInfo(MainActivity.this);
 
         m_pd = ProgressDialog.show(this, "", "로딩중", true, false);
 
@@ -215,12 +239,14 @@ public class MainActivity extends AppCompatActivity implements Runnable {
 
         // Login
         Login login = new Login();
-        m_LoginStatus = login.LoginTo(context, m_httpRequest);
+        m_LoginStatus = login.LoginTo(context, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strUserPw);
         m_strErrorMsg = login.m_strErrorMsg;
 
         if (m_LoginStatus <= 0) {
             return false;
         }
+
+        login.PushRegister(context, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strRegId, m_app.m_nPushYN);
 
         if (!getData()) {
             m_LoginStatus = 0;
@@ -233,7 +259,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
 
         String url = "http://www.gongdong.or.kr/front";
 
-        String result = m_httpRequest.requestGet(url, url, "utf-8");
+        String result = m_app.m_httpRequest.requestGet(url, url, "utf-8");
         // Direct use of Pattern:
         String cafelist = Utils.getMatcherFirstString("(<select name=\\\"community)(.|\\n)*?(</select>)", result);
         //
@@ -246,11 +272,11 @@ public class MainActivity extends AppCompatActivity implements Runnable {
             System.out.println(option);
 
             String code = Utils.getMatcherFirstString("(?<=value=\\\")(.|\\n)*?(?=\\\")", option);
-            item.put("code", code);
+            item.put("commId", code);
 
             String title = option.replaceAll("<((.|\\n)*?)+>", "");
             title = title.trim();
-            item.put("title", title);
+            item.put("commName", title);
 
             m_arrayItems.add( item );
         }
@@ -263,6 +289,12 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         return true;
     }
 
+    public void showLoginActivity() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivityForResult(intent, SETUP_CODE);
+
+        return;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -9,8 +9,8 @@ android {
         applicationId "com.panicstyle.Gongdong"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 19
-        versionName "3.2.0"
+        versionCode 20
+        versionName "3.3.0"
     }
     buildTypes {
         release {
@@ -35,5 +35,8 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:design:23.1.1'
-    compile 'com.google.android.gms:play-services-ads:8.4.0'
+    compile 'com.google.android.gms:play-services-ads:9.4.0'
+    compile 'com.google.firebase:firebase-messaging:9.4.0'
 }
+
+apply plugin: 'com.google.gms.google-services'
