@@ -58,9 +58,9 @@ public class Login {
 		return 1;
 	}
 
-	public int PushRegister(Context context, HttpRequest httpRequest, String userID, String regId) {
+	public int PushRegister(Context context, HttpRequest httpRequest, String userID, String regId, boolean pushYN) {
 
-		if (userID.isEmpty() || regId.isEmpty()) {
+		if (userID == null || regId == null || userID.isEmpty() || regId.isEmpty()) {
 			return 0;
 		}
 
@@ -69,6 +69,11 @@ public class Login {
 		JSONObject obj = new JSONObject();
 
 		String strPushYN = "Y";
+		if (pushYN) {
+			strPushYN = "Y";
+		} else {
+			strPushYN = "N";
+		}
 
 		try {
 			obj.put("uuid", regId);
