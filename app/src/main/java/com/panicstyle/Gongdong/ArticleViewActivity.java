@@ -46,6 +46,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ArticleViewActivity extends AppCompatActivity implements Runnable {
+    private static final String TAG = "ArticleViewActivity";
+
 	/** Called when the activity is first created. */
     private ProgressDialog m_pd;
     private List<HashMap<String, Object>> m_arrayItems;
@@ -98,6 +100,18 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         adView.loadAd(adRequest);
 
         m_app = (GongdongApplication)getApplication();
+        if (m_app.m_strUserId == null) {
+            SetInfo setInfo = new SetInfo();
+            if (!setInfo.GetUserInfo(ArticleViewActivity.this)) {
+                m_app.m_strUserId = "";
+                m_app.m_strUserPw = "";
+                m_app.m_nPushYN = true;
+            } else {
+                m_app.m_strUserId = setInfo.m_userId;
+                m_app.m_strUserPw = setInfo.m_userPw;
+                m_app.m_nPushYN = setInfo.m_pushYN;
+            }
+        }
 
         intenter();
 
@@ -363,7 +377,12 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
                 + m_strCommId + "&p2=&p3=&number=" + m_strBoardNo + "&mode=view";
         String result = m_app.m_httpRequest.requestGet(url, url, "utf-8");
 
-        if (result.length() < 200) {
+        Log.d(TAG, "result : " + result);
+
+        if (result.length() < 200
+                || result.indexOf("window.alert(\"권한이 없습니다") >= 0
+                || result.indexOf("window.alert(\"로그인 하세요") >= 0
+                ) {
         	return false;
         }
 
@@ -441,7 +460,10 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         String url = "http://www.gongdong.or.kr/notice/" + m_strBoardNo;
         String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
 
-        if (result.length() < 200) {
+        if (result.length() < 200
+                || result.indexOf("window.alert(\"권한이 없습니다") >= 0
+                || result.indexOf("window.alert(\"로그인 하세요") >= 0
+                ) {
             return false;
         }
 
