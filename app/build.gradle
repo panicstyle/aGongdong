@@ -2,15 +2,15 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.0"
+    buildToolsVersion '25.0.0'
     useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
         applicationId "com.panicstyle.Gongdong"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 21
-        versionName "3.3.1"
+        versionCode 22
+        versionName "3.3.2"
     }
     buildTypes {
         release {
