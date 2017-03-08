@@ -9,66 +9,92 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.ibexlab.myapplication2.LoginActivity">
+    tools:context="com.panicstyle.Gongdong.AboutActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
-        android:orientation="vertical" >
+        android:layout_marginTop="16dp"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/textTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="공동육아 for Android"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:text="공동육아앱 for Android"
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
 
         <TextView
             android:id="@+id/textVersion"
-            android:layout_marginTop="16dip"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dip"
             android:text="버전 : 1.0.0"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+        <TextView
+            android:id="@+id/textDeveloper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dip"
+            android:text="개발자 : 호랑이(과천맨발어린이집 졸업조합원)"
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
 
         <TextView
             android:id="@+id/textEmail"
-            android:layout_marginTop="16dip"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="문의 메일 : panicstyle@gmail.com"
+            android:layout_marginTop="16dip"
             android:autoLink="email"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:text="문의 메일 : panicstyle@gmail.com"
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
 
         <TextView
             android:id="@+id/textHomePage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="16dip"
+            android:autoLink="web"
+            android:text="홈페이지 : http://www.panicstyle.net/?page_id=7"
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+        <TextView
+            android:id="@+id/textSource"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="문의 홈페이지 : http://www.panicstyle.net/?page_id=7"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:autoLink="web" />
+            android:layout_marginTop="16dip"
+            android:autoLink="web"
+            android:text="소스 : https://github.com/panicstyle/aGongdong"
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/textAdInfo"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            >
-
-        <ImageView
-            android:id="@+id/imageView1"
-            android:layout_gravity="center"
-            android:layout_marginTop="20dip"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/gongdong_logo"
-            />
+            android:layout_marginTop="16dip"
+            android:text="광고수익은 공동육아 저소득기금으로 사용됩니다."
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
 
-        </LinearLayout>
+        <Button
+            android:id="@+id/btnDonation"
+            style="?android:textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="개발자에게 커피한잔 쏘기"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textDonationInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dip"
+            android:text="공동육아앱 개발자를 후원해 주세요."
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
+
     </LinearLayout>
 
 </LinearLayout>
