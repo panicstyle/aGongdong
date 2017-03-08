@@ -41,7 +41,7 @@
 					  android:layout_width="0dip"
 					  android:layout_height="fill_parent"
 					  android:gravity = "left|center_vertical"
-					  android:textSize = "15sp"
+					  android:textSize = "12sp"
 					  android:drawSelectorOnTop="false"
 					  android:layout_weight="60"
 					  android:textColor="#111111" >

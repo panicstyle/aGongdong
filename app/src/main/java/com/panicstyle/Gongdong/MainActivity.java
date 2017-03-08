@@ -170,6 +170,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         System.out.println("UserID = " +  m_app.m_strUserId);
 
         if (!setInfo.CheckVersionInfo(MainActivity.this)) {
+/*
             AlertDialog.Builder notice = null;
             notice = new AlertDialog.Builder( MainActivity.this );
             notice.setTitle( "버전 업데이트 알림" );
@@ -188,9 +189,9 @@ public class MainActivity extends AppCompatActivity implements Runnable {
                 }
             });
             notice.show();
-
+*/
+            setInfo.SaveVersionInfo(MainActivity.this);
         }
-        setInfo.SaveVersionInfo(MainActivity.this);
 
         m_pd = ProgressDialog.show(this, "", "로딩중", true, false);
 
