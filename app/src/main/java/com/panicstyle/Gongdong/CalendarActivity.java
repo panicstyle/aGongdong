@@ -69,7 +69,7 @@ public class CalendarActivity extends AppCompatActivity implements Runnable {
         for (int i = 0; i < 31; i++) {
             if (m_dayStaus[i] == 0) continue;
             Date d = null;
-            strDate = m_nYear + "-" + m_nMonth + "-" + i;
+            strDate = m_nYear + "-" + m_nMonth + "-" + (i + 1);
             try {
                 d = sdFormat.parse(strDate);
             } catch (ParseException e) {
@@ -203,9 +203,9 @@ public class CalendarActivity extends AppCompatActivity implements Runnable {
                 if (prevDate != null) {
                     String day = (String) android.text.format.DateFormat.format("dd", prevDate);
                     int nDay = Integer.valueOf(day);
-                    m_dayStaus[nDay] = 1;
+//                    m_dayStaus[nDay - 1] = 1;
 
-                    if (m_dayStaus[nDay] == 1) {
+                    if (m_dayStaus[nDay - 1] == 1) {
                         caldroidFragment.setBackgroundResourceForDate(R.color.blue, prevDate);
                     } else {
                         caldroidFragment.setBackgroundResourceForDate(-1, prevDate);
@@ -286,8 +286,7 @@ public class CalendarActivity extends AppCompatActivity implements Runnable {
     }
 
     public void LoadingData() {
-        m_pd = ProgressDialog.show(this, "", "로딩중", true,
-                false);
+//        m_pd = ProgressDialog.show(this, "", "로딩중", true, false);
 
         Thread thread = new Thread(this);
         thread.start();
@@ -429,7 +428,7 @@ public class CalendarActivity extends AppCompatActivity implements Runnable {
 
                 String day = (String) android.text.format.DateFormat.format("dd", d);
                 int nDay = Integer.valueOf(day);
-                m_dayStaus[nDay] = 1;
+                m_dayStaus[nDay - 1] = 1;
 
                 m_arrayItems.add(item);
             }
