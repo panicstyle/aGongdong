@@ -23,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageButton;
@@ -35,10 +36,12 @@ import android.widget.TextView;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -87,6 +90,8 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     private String m_strUrl;
 
     private GongdongApplication m_app;
+
+    WebView webContent;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -235,7 +240,6 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
             TextView tvName;
             TextView tvDate;
             TextView tvHit;
-            WebView webContent;
             TextView tvProfile;
             TextView tvCommentCnt;
             ScrollView scrollView;
@@ -255,40 +259,12 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
             webContent = (WebView) findViewById(R.id.webView);
 
-            webContent.setWebViewClient(new WebViewClient() {
-                @Override
-                public boolean shouldOverrideUrlLoading (WebView view, String url) {
-                    boolean shouldOverride = false;
-                    // We only want to handle requests for mp3 files, everything else the webview
-                    // can handle normally
-                    if (url.indexOf("download.php?") >= 0) {
-                        m_strUrl = url;
-                        AlertDialog.Builder notice = null;
-                        notice = new AlertDialog.Builder( ArticleViewActivity.this );
-//                        notice.setTitle( "" );
-                        notice.setMessage("첨부파일을 다운로드 하시겠습니까?");
-                        notice.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface arg0, int arg1) {
-                                String fileName = Utils.getMatcherFirstString("(?<=&name=)(.|\\n)*?(?=$)", m_strUrl);
-                                DownloadManager.Request request = new DownloadManager.Request(
-                                        Uri.parse(m_strUrl));
-                                request.allowScanningByMediaScanner();
-                                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
-// You can change the name of the downloads, by changing "download" to everything you want, such as the mWebview title...
-                                DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                                dm.enqueue(request);
-                            }
-                        });
-                        notice.setNegativeButton(android.R.string.cancel, null);
-                        notice.show();
+            webContent.setWebViewClient(new myWebClient());
 
-                    }
-                    return shouldOverride;
-                }
-            });
+            webContent.addJavascriptInterface(this, "MyApp");
             webContent.getSettings().setJavaScriptEnabled(true);
+            webContent.setBackgroundColor(0);
+
             webContent.setBackgroundColor(0);
             webContent.loadDataWithBaseURL("http://cafe.gongdong.or.kr", m_strHTML, "text/html", "utf-8", "");
 
@@ -337,6 +313,75 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
                 ll.addView(view);
             }
 		}
+    }
+
+    public class myWebClient extends WebViewClient {
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            webContent.loadUrl("javascript:MyApp.resize(document.body.getBoundingClientRect().height)");
+            super.onPageFinished(view, url);
+        }
+
+        @Override
+        public boolean shouldOverrideUrlLoading (WebView view, String url) {
+            boolean shouldOverride = false;
+            // We only want to handle requests for mp3 files, everything else the webview
+            // can handle normally
+            if (url.indexOf("download.php?") >= 0) {
+                m_strUrl = url;
+                AlertDialog.Builder notice = null;
+                notice = new AlertDialog.Builder( ArticleViewActivity.this );
+//                        notice.setTitle( "" );
+                notice.setMessage("첨부파일을 다운로드 하시겠습니까?");
+                notice.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        String fileName = Utils.getMatcherFirstString("(?<=&name=)(.|\\n)*?(?=$)", m_strUrl);
+                        DownloadManager.Request request = new DownloadManager.Request(
+                                Uri.parse(m_strUrl));
+                        request.allowScanningByMediaScanner();
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+// You can change the name of the downloads, by changing "download" to everything you want, such as the mWebview title...
+                        DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                        dm.enqueue(request);
+                    }
+                });
+                notice.setNegativeButton(android.R.string.cancel, null);
+                notice.show();
+
+            }
+            return shouldOverride;
+        }
+    }
+
+    @JavascriptInterface
+    public void resize(final float height) {
+        ArticleViewActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                webContent.setLayoutParams(new LinearLayout.LayoutParams(getResources().getDisplayMetrics().widthPixels - 120, (int) (height * getResources().getDisplayMetrics().density)));
+            }
+        });
+    }
+
+    @JavascriptInterface
+    public void invokeImg(final String img_src) {
+        Log.d(TAG, img_src);
+        try {
+            String fileName = Utils.getMatcherFirstString("(?<=&name=)(.|\\n)*?(?=$)", img_src);
+            if (fileName == null || fileName.equals("")) {
+                URL url = new URL(img_src);
+                fileName = FilenameUtils.getName(url.getPath());
+            }
+
+            Intent intent = new Intent(ArticleViewActivity.this, ImageActivity.class);
+            intent.putExtra("ITEMS_LINK", img_src);
+            intent.putExtra("FILENAME", fileName);
+            startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void intenter() {
@@ -392,6 +437,10 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
         String strAttach = Utils.getMatcherFirstString("(?<=<!-- view image file -->)(.|\\n)*?(?=<tr><td bgcolor=)", result);
 
+        m_strBoardContent = m_strBoardContent.replaceAll("<img ", "<img onclick=\"myapp_clickImg(this)\" width=300 ");
+        strImage = strImage.replaceAll("<onload=\"resizeImage2(this)\"", "");
+        strImage = strImage.replaceAll("<img ", "<img onclick=\"myapp_clickImg(this)\" width=300 ");
+
         strCommentBody = strCommentBody.replaceAll("<IMG src=\"images/b_edit.gif\" border=0 hspace=\"0\" alt=\"삭제하기\" align=absmiddle>", "");
         strCommentBody = strCommentBody.replaceAll("<IMG src=\"images/b_del.gif\" border=0 hspace=\"0\" alt=\"삭제하기\" align=absmiddle>", "");
         strCommentBody = strCommentBody.replaceAll("<IMG src=\"images/bt_reply.gif\" border=0 hspace=\"0\" alt=\"댓글쓰기\" align=absmiddle>", "");
@@ -444,11 +493,12 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 //        String strHeader = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">";
         String strHeader = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";
         strHeader += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi\">";
+        strHeader += "<script>function myapp_clickImg(obj){MyApp.invokeImg(obj.src);}</script>";
         strHeader += "</head><body>";
-        String strResize = "<script>function resizeImage2(mm){var width = eval(mm.width);var height = eval(mm.height);if( width > 300 ){var p_height = 300 / width;var new_height = height * p_height;eval(mm.width = 300);eval(mm.height = new_height);}} function image_open(src, mm) {var src1 = 'image2.php?imgsrc='+src;window.open(src1,'image','width=1,height=1,scrollbars=yes,resizable=yes');}</script>";
+//        String strResize = "<script>function resizeImage2(mm){var width = eval(mm.width);var height = eval(mm.height);if( width > 300 ){var p_height = 300 / width;var new_height = height * p_height;eval(mm.width = 300);eval(mm.height = new_height);}} function image_open(src, mm) {var src1 = 'image2.php?imgsrc='+src;window.open(src1,'image','width=1,height=1,scrollbars=yes,resizable=yes');}</script>";
         String strBottom = "</body></html>";
 
-    	m_strHTML = strHeader + strResize + m_strBoardContent + strImage + strAttach + strBottom;
+    	m_strHTML = strHeader + m_strBoardContent + strImage + strAttach + strBottom;
 
         return true;
     }
@@ -473,6 +523,10 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
         String strImage = Utils.getMatcherFirstString("(?<=<ul class=\"files\">)(.|\\n)*?(?=</ul>)", result);
         String strCommentBody = Utils.getMatcherFirstString("(?<=<div class=\"feedbackList\" id=\"reply\">)(.|\\n)*?(?=<form action=)", result);
+
+        m_strBoardContent = m_strBoardContent.replaceAll("<img ", "<img onclick=\"myapp_clickImg(this)\" width=300 ");
+        strImage = strImage.replaceAll("<onload=\"resizeImage2(this)\"", "");
+        strImage = strImage.replaceAll("<img ", "<img onclick=\"myapp_clickImg(this)\" width=300 ");
 
         strCommentBody = strCommentBody.replaceAll("<IMG src=\"images/b_edit.gif\" border=0 hspace=\"0\" alt=\"삭제하기\" align=absmiddle>", "");
         strCommentBody = strCommentBody.replaceAll("<IMG src=\"images/b_del.gif\" border=0 hspace=\"0\" alt=\"삭제하기\" align=absmiddle>", "");
@@ -524,11 +578,12 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 //        String strHeader = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">";
         String strHeader = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";
         strHeader += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi\">";
+        strHeader += "<script>function myapp_clickImg(obj){MyApp.invokeImg(obj.src);}</script>";
         strHeader += "</head><body>";
-        String strResize = "<script>function resizeImage2(mm){var width = eval(mm.width);var height = eval(mm.height);if( width > 300 ){var p_height = 300 / width;var new_height = height * p_height;eval(mm.width = 300);eval(mm.height = new_height);}} function image_open(src, mm) {var src1 = 'image2.php?imgsrc='+src;window.open(src1,'image','width=1,height=1,scrollbars=yes,resizable=yes');}</script>";
+//        String strResize = "<script>function resizeImage2(mm){var width = eval(mm.width);var height = eval(mm.height);if( width > 300 ){var p_height = 300 / width;var new_height = height * p_height;eval(mm.width = 300);eval(mm.height = new_height);}} function image_open(src, mm) {var src1 = 'image2.php?imgsrc='+src;window.open(src1,'image','width=1,height=1,scrollbars=yes,resizable=yes');}</script>";
         String strBottom = "</body></html>";
 
-        m_strHTML = strHeader + strResize + m_strBoardContent + strImage + strBottom;
+        m_strHTML = strHeader + m_strBoardContent + strImage + strBottom;
 
         return true;
     }
