@@ -467,7 +467,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
             String strName = Utils.getMatcherFirstString("(?<='\\);\\\" >)(.|\\n)*?(?=</a>)", matchstr);
             item.put("name",  strName);
             // comment
-            String strComment = Utils.getMatcherFirstString("(?<=<td bgcolor=\\\"#ffffff\\\" style=\\\"padding:7pt;\\\">)(.|\\n)*?(?=</div>)", matchstr);
+            String strComment = Utils.getMatcherFirstString("(?<=<td style=\\\"padding:7pt;\\\">)(.|\\n)*?(?=</div>)", matchstr);
 
             if (strComment.length() <= 0) {
                 // comment

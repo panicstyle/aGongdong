@@ -267,11 +267,11 @@ public class MainActivity extends AppCompatActivity implements Runnable {
 
     protected boolean getData() {
 
-        String url = "http://www.gongdong.or.kr/front";
+        String url = "http://www.gongdong.or.kr/";
 
         String result = m_app.m_httpRequest.requestGet(url, url, "utf-8");
         // Direct use of Pattern:
-        String cafelist = Utils.getMatcherFirstString("(<select name=\\\"community)(.|\\n)*?(</select>)", result);
+        String cafelist = Utils.getMatcherFirstString("(<select name=\\\"select_community)(.|\\n)*?(</select>)", result);
         //
         HashMap<String, String> item;
 
@@ -282,6 +282,9 @@ public class MainActivity extends AppCompatActivity implements Runnable {
             System.out.println(option);
 
             String code = Utils.getMatcherFirstString("(?<=value=\\\")(.|\\n)*?(?=\\\")", option);
+
+            if (code.isEmpty()) continue;
+
             item.put("commId", code);
 
             String title = option.replaceAll("<((.|\\n)*?)+>", "");

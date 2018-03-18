@@ -379,7 +379,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
         }
 
 		// 소스에서 <div align="center">제목</div> 가 있으면 일반 게시판, 없으면 사진첩으로 처리
-		if (result.indexOf("<div align=\"center\">제목</div>") > 0) {
+		if (result.indexOf("<tr  id=\"board_list_title") > 0) {
 			m_nMode = 1;
 			return getDataNormalMode(result);
 		} else {
@@ -416,7 +416,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 
             // subject
 	        String strSubject;
-			strSubject = Utils.getMatcherFirstString("(<div align=\\\"left)(.|\\n)*?(</div>)", matchstr);
+			strSubject = Utils.getMatcherFirstString("(<td class=\"subject)(.|\\n)*?(</a>)", matchstr);
 			strSubject = Utils.repalceHtmlSymbol(strSubject);
             item.put("subject", strSubject);
 
@@ -437,7 +437,8 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			}
 
 	        // comment
-			String strComment = Utils.getMatcherFirstString("(?<=<font face=\\\"Tahoma\\\"><b>\\[)(.|\\n)*?(?=\\]</b></font>)", matchstr);
+			strSubject = Utils.getMatcherFirstString("(<td class=\"subject)(.|\\n)*?(</td>)", matchstr);
+			String strComment = Utils.getMatcherFirstString("(?<=\\[)(.|\\n)*?(?=\\])", strSubject);
             item.put("comment", strComment);
 
             // isNew
@@ -473,13 +474,13 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
             }
 
 	        // date
-			String strDate = Utils.getMatcherFirstString("(<div align=\\\"center\\\"><span style=\\\"font-size:8pt;\\\"><font)(.|\\n)*?(</div>)", matchstr);
+			String strDate = Utils.getMatcherFirstString("(<td class=\"date)(.|\\n)*?(</td>)", matchstr);
 			strDate = strDate.replaceAll("<((.|\\n)*?)+>", "");
 			strDate = strDate.trim();
             item.put("date", strDate);
 
 			// 조회수
-			String strHit = Utils.getMatcherFirstString("(<div align=\\\"right\\\"><span style=\\\"font-size:8pt;\\\"><font face=\\\"Tahoma\\\">)(.|\\n)*?(&nbsp;)", matchstr);
+			String strHit = Utils.getMatcherFirstString("(<td class=\"hit)(.|\\n)*?(</td>)", matchstr);
 			strHit = strHit.replaceAll("<((.|\\n)*?)+>", "");
 			strHit = strHit.replaceAll("&nbsp;", "");
 			strHit = strHit.trim();
