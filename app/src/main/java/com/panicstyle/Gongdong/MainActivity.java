@@ -232,7 +232,16 @@ public class MainActivity extends AppCompatActivity implements Runnable {
             ab.setTitle("로그인 오류");
             ab.show();
         } else {
-            m_listView.setAdapter(new EfficientAdapter(MainActivity.this, m_arrayItems));
+            if (m_arrayItems.size() <= 0) {
+                AlertDialog.Builder ab = null;
+                ab = new AlertDialog.Builder( MainActivity.this );
+                ab.setMessage( "\n가입된 커뮤니티가 없습니다.\n커뮤니티(어린이집) 가입여부를 확인하세요.");
+                ab.setPositiveButton(android.R.string.ok, null);
+                ab.setTitle("안내");
+                ab.show();
+            } else {
+                m_listView.setAdapter(new EfficientAdapter(MainActivity.this, m_arrayItems));
+            }
         }
     }
 
@@ -283,9 +292,11 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         }
         System.out.println("after getData");
 
+        /*
         if (m_arrayItems.size() <= 0) {
             return false;
         }
+        */
 
         return true;
     }
