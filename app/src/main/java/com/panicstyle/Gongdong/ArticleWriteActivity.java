@@ -68,7 +68,7 @@ public class ArticleWriteActivity extends AppCompatActivity implements Runnable 
 
         intenter();
 
-        if (m_nMode == 1) {
+        if (m_nMode == GlobalConst.MODIFY) {
             setTitle("글수정");
             m_strBoardTitle = Utils.repalceHtmlSymbol(m_strBoardTitle);
             m_strBoardContent = Utils.repalceHtmlSymbol(m_strBoardContent);
