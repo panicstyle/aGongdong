@@ -275,10 +275,13 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         //
         HashMap<String, String> item;
 
+/*
+        // 테스트를 위해 사이트 직접 추가
         item = new HashMap<String, String>();
         item.put("commId", "urinori");
         item.put("commName", "우리노리");
         m_arrayItems.add(item);
+*/
 
         Matcher m = Utils.getMatcher("(<option value=)(.|\\n)*?(</option>)", cafelist);
         while (m.find()) { // Find each match in turn; String can't do this.

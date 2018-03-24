@@ -115,7 +115,7 @@ public class CommentWriteActivity extends AppCompatActivity implements Runnable 
                 PostDataPNotice();
             }
         } else {
-            if (m_nPNotice == GlobalConst.MODIFY) {
+            if (m_nPNotice == 0) {
                 PostModifyData();
             } else {
                 PostDataPNotice();

@@ -438,7 +438,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         String strImage = Utils.getMatcherFirstString("(<p align=center><img onload=\\\"resizeImage2[(]this[)]\\\")(.|\\n)*?(</td>)", result);
         String strCommentBody = Utils.getMatcherFirstString("(?<=<!-- 댓글 시작 -->)(.|\\n)*?(?=<!-- 댓글 끝 -->)", result);
 
-        String strAttach = Utils.getMatcherFirstString("(?<=<!-- view image file -->)(.|\\n)*?(?=<tr><td bgcolor=)", result);
+        String strAttach = Utils.getMatcherFirstString("(<!-- view image file -->)(.|\\n)*?(</tr>)", result);
 
         m_strBoardContent = m_strBoardContent.replaceAll("<img ", "<img onclick=\"myapp_clickImg(this)\" width=300 ");
         strImage = strImage.replaceAll("<onload=\"resizeImage2(this)\"", "");
@@ -501,7 +501,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 //        String strResize = "<script>function resizeImage2(mm){var width = eval(mm.width);var height = eval(mm.height);if( width > 300 ){var p_height = 300 / width;var new_height = height * p_height;eval(mm.width = 300);eval(mm.height = new_height);}} function image_open(src, mm) {var src1 = 'image2.php?imgsrc='+src;window.open(src1,'image','width=1,height=1,scrollbars=yes,resizable=yes');}</script>";
         String strBottom = "</body></html>";
 
-    	m_strHTML = strHeader + m_strBoardContent + strImage + strAttach + strBottom;
+    	m_strHTML = strHeader + "<div>" + m_strBoardContent + "</div>" + strImage + strAttach + strBottom;
 
         return true;
     }
