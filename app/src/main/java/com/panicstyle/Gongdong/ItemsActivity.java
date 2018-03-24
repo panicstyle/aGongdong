@@ -392,7 +392,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
         // 각 항목 찾기
         HashMap<String, Object> item;
 
-		Matcher m = Utils.getMatcher("(id=\\\"board_list_line\\\")(.|\\n)*?(<td bgcolor=\"#f5f5f5\" colspan=\"7\" height=1></td>)", result);
+		Matcher m = Utils.getMatcher("(id=\\\"board_list_line\\\")(.|\\n)*?(</tr>)", result);
         while (m.find()) { // Find each match in turn; String can't do this.
             item = new HashMap<String, Object>();
             String matchstr = m.group(0);
@@ -423,9 +423,10 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 	        // link
 			String strLink = Utils.getMatcherFirstString("(?<=<a href=\\\")(.|\\n)*?(?=\\\")", matchstr);
 			if (isNoti == 2) {
-				String boardNo = Utils.getMatcherFirstString("(?<=/notice/)(.|\\n)*?(?=$)", strLink);
+				String boardId = Utils.getMatcherFirstString("(?<=bo_table=)(.|\\n)*?(?=&)", strLink);
+				String boardNo = Utils.getMatcherFirstString("(?<=&wr_id=)(.|\\n)*?(?=$)", strLink);
 				item.put("commId", "");
-				item.put("boardId", "");
+				item.put("boardId", boardId);
 				item.put("boardNo", boardNo);
 			} else {
 				String commId = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", strLink);
@@ -438,6 +439,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 
 	        // comment
 			strSubject = Utils.getMatcherFirstString("(<td class=\"subject)(.|\\n)*?(</td>)", matchstr);
+			strSubject = Utils.getMatcherFirstString("(</a>)(.|\\n)*?(</td>)", strSubject);
 			String strComment = Utils.getMatcherFirstString("(?<=\\[)(.|\\n)*?(?=\\])", strSubject);
             item.put("comment", strComment);
 

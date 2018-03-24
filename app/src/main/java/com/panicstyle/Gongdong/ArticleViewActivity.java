@@ -40,13 +40,11 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
-import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     private static final String TAG = "ArticleViewActivity";
@@ -54,6 +52,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 	/** Called when the activity is first created. */
     private ProgressDialog m_pd;
     private List<HashMap<String, Object>> m_arrayItems;
+    private List<HashMap<String, String>> m_arrayAttach;
     private int m_nThreadMode = 0;
     private boolean m_bDeleteStatus;
     private String m_strErrorMsg;
@@ -81,8 +80,11 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     private String m_strID;
     private String m_strHit;
     private String m_strDate;
-//    private String m_strLink;
+    private String m_strDeleteLink;
 
+    private String m_strTitle;
+    private String m_strContent;
+    private String m_strAttach;
     private String m_strBoardContent;
     private String m_strProfile;
     private String m_strHTML;
@@ -121,6 +123,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         intenter();
 
         m_arrayItems = new ArrayList<>();
+        m_arrayAttach = new ArrayList<>();
 
         m_nThreadMode = 1;
         LoadData("로딩중");
@@ -435,7 +438,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         String strImage = Utils.getMatcherFirstString("(<p align=center><img onload=\\\"resizeImage2[(]this[)]\\\")(.|\\n)*?(</td>)", result);
         String strCommentBody = Utils.getMatcherFirstString("(?<=<!-- 댓글 시작 -->)(.|\\n)*?(?=<!-- 댓글 끝 -->)", result);
 
-        String strAttach = Utils.getMatcherFirstString("(?<=<!-- view image file -->)(.|\\n)*?(?=<tr><td bgcolor=)", result);
+        String strAttach = Utils.getMatcherFirstString("(<!-- view image file -->)(.|\\n)*?(</tr>)", result);
 
         m_strBoardContent = m_strBoardContent.replaceAll("<img ", "<img onclick=\"myapp_clickImg(this)\" width=300 ");
         strImage = strImage.replaceAll("<onload=\"resizeImage2(this)\"", "");
@@ -498,7 +501,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 //        String strResize = "<script>function resizeImage2(mm){var width = eval(mm.width);var height = eval(mm.height);if( width > 300 ){var p_height = 300 / width;var new_height = height * p_height;eval(mm.width = 300);eval(mm.height = new_height);}} function image_open(src, mm) {var src1 = 'image2.php?imgsrc='+src;window.open(src1,'image','width=1,height=1,scrollbars=yes,resizable=yes');}</script>";
         String strBottom = "</body></html>";
 
-    	m_strHTML = strHeader + m_strBoardContent + strImage + strAttach + strBottom;
+    	m_strHTML = strHeader + "<div>" + m_strBoardContent + "</div>" + strImage + strAttach + strBottom;
 
         return true;
     }
@@ -507,7 +510,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
 //        String url = m_strLink;
 //        http://www.gongdong.or.kr/notice/343365
-        String url = "http://www.gongdong.or.kr/notice/" + m_strBoardNo;
+        String url = "http://www.gongdong.or.kr/bbs/board.php?bo_table=" + m_strBoardId + "&wr_id=" + m_strBoardNo;
         String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
 
         if (result.length() < 200
@@ -517,60 +520,70 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
             return false;
         }
 
-        m_strBoardContent = Utils.getMatcherFirstString("(<!--BeforeDocument)(.|\\n)*?(</div><!--AfterDocument)", result);
-        m_strBoardContent = m_strBoardContent.replaceAll("(<!--)(.|\\n)*?(-->)", "");
-        m_strBoardContent = m_strBoardContent.replaceAll("<!--AfterDocument", "");
+        m_strTitle = Utils.getMatcherFirstString("(?<=<h1 id=\\\"bo_v_title\\\">)(.|\\n)*?(?=</h1>)", result);
+        m_strTitle = Utils.repalceHtmlSymbol(m_strTitle);
 
-        String strImage = Utils.getMatcherFirstString("(?<=<ul class=\"files\">)(.|\\n)*?(?=</ul>)", result);
-        String strCommentBody = Utils.getMatcherFirstString("(?<=<div class=\"feedbackList\" id=\"reply\">)(.|\\n)*?(?=<form action=)", result);
+        m_strName = Utils.getMatcherFirstString("(?<=<span class=\\\"sv_member\\\">)(.|\\n)*?(?=</span>)", result);
 
-        m_strBoardContent = m_strBoardContent.replaceAll("<img ", "<img onclick=\"myapp_clickImg(this)\" width=300 ");
-        strImage = strImage.replaceAll("<onload=\"resizeImage2(this)\"", "");
-        strImage = strImage.replaceAll("<img ", "<img onclick=\"myapp_clickImg(this)\" width=300 ");
+        m_strDate = Utils.getMatcherFirstString("(?<=작성일</span><strong>)(.|\\n)*?(?=</strong>)", result);
 
-        strCommentBody = strCommentBody.replaceAll("<IMG src=\"images/b_edit.gif\" border=0 hspace=\"0\" alt=\"삭제하기\" align=absmiddle>", "");
-        strCommentBody = strCommentBody.replaceAll("<IMG src=\"images/b_del.gif\" border=0 hspace=\"0\" alt=\"삭제하기\" align=absmiddle>", "");
-        strCommentBody = strCommentBody.replaceAll("<IMG src=\"images/bt_reply.gif\" border=0 hspace=\"0\" alt=\"댓글쓰기\" align=absmiddle>", "");
-        strCommentBody = strCommentBody.replaceAll("href=\"javascript:ui", "");
-        strCommentBody = strCommentBody.replaceAll("href=\"JavaScript:self.location=", "");
+        m_strHit = Utils.getMatcherFirstString("(?<=조회<strong>)(.|\\n)*?(?=회</strong>)", result);
+
+        m_strContent = Utils.getMatcherFirstString("(<!-- 본문 내용 시작)(.|\\n)*?(본문 내용 끝 -->)", result);
+        m_strContent = m_strContent.replaceAll("<img ", "<img onload=\"resizeImage2(this)\" ");
+
+        m_strAttach = Utils.getMatcherFirstString("(<!-- 첨부파일 시작)(.|\\n)*?(첨부파일 끝 -->)", result);
+        m_strAttach = m_strAttach.replaceAll("<h2>첨부파일</h2>", "");
+
+        String strImage = Utils.getMatcherFirstString("(<div id=\\\"bo_v_img\\\">)(.|\\n)*?(</div>)", result);
+        strImage = strImage.replaceAll("<img ", "<img onload=\"resizeImage2(this)\" ");
 
         // 각 항목 찾기
         m_arrayItems.clear();
+        m_arrayAttach.clear();
+
+        parseAttach();
+
+        String strCommentBody = Utils.getMatcherFirstString("(<!-- 댓글 시작)(.|\\n)*?(댓글 끝 -->)", result);
+
         HashMap<String, Object> item;
 
-        String[] items = strCommentBody.split("<div class=\"item \" id=\"comment");
+        String[] items = strCommentBody.split("<article id=");
         int i = 0;
         for (i = 1; i < items.length; i++) { // Find each match in turn; String can't do this.
             String matchstr = items[i];
 
             item = new HashMap<String, Object>();
 
-            // LINK
-            String strLink = Utils.getMatcherFirstString("(?<=<a href=\\\"http://www.gongdong.or.kr/)(.|\\n)*?(?=\\\">)", matchstr);
-            // Comment No
-            String strCommentNo = Utils.getMatcherFirstString("(?<=comment_srl=)(.|\\n)*?(?=&)", strLink);
-            if (strCommentNo.equalsIgnoreCase("")) {
-                strCommentNo = Utils.getMatcherFirstString("(?<=comment_srl=)(.|\\n)*?(?=$)", strLink);
-            }
-            item.put("commentno",  strCommentNo);
-            // Name
-            String strName = Utils.getMatcherFirstString("(<a href=\"#popup_menu_area\" class=\"member_)(.|\\n)*?(</a>)", matchstr);
-            strName = Utils.repalceHtmlSymbol(strName);
-            item.put("name",  strName);
-            // comment
-            String strComment = Utils.getMatcherFirstString("(<!--BeforeComment)(.|\\n)*?(?=<!--AfterComment)", matchstr);
-            strComment = Utils.repalceHtmlSymbol(strComment);
-            item.put("comment",  strComment);
             // is Re
-            if (matchstr.contains("padding:7pt 7pt 7pt 50pt")) {
+            if (matchstr.indexOf("icon_reply.gif") > 0) {
                 item.put("isReply", 1);
             } else {
                 item.put("isReply", 0);
             }
+
+            // Comment No
+            String strCommentNo = Utils.getMatcherFirstString("(?<=span id=\\\"edit_)(.|\\n)*?(?=\\\")", matchstr);
+            item.put("commentno",  strCommentNo);
+
+            // Name
+            String strName = Utils.getMatcherFirstString("(?<=<span class=\\\"member\\\">)(.|\\n)*?(?=</span>)", matchstr);
+            item.put("name",  strName);
+
             // Date
-            String strDate = Utils.getMatcherFirstString("(?<=<p class=\"meta\">)(.|\\n)*?(?=</p>)", matchstr);
-            strDate = strDate.replaceAll("\t\t\t\t\t\t\t", " ");
+            String strDate = Utils.getMatcherFirstString("(<time datetime=)(.|\\n)*?(</time>)", matchstr);
+            strDate = Utils.repalceHtmlSymbol(strDate);
             item.put("date",  strDate);
+
+            // comment
+            String strComment = Utils.getMatcherFirstString("(<!-- 댓글 출력 -->)(.|\\n)*?(<!-- 수정 -->)", matchstr);
+            strComment = Utils.repalceHtmlSymbol(strComment);
+            item.put("comment",  strComment);
+
+            // delete link
+            String strDeleteLink = Utils.getMatcherFirstString("(./delete_comment.php)(.|\\n)*?(page=)", matchstr);
+            strDeleteLink = strDeleteLink.replaceAll("&amp;", "&");
+            item.put("deletelink",  strDeleteLink);
 
             m_arrayItems.add( item );
         }
@@ -578,14 +591,33 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 //        String strHeader = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">";
         String strHeader = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";
         strHeader += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi\">";
-        strHeader += "<script>function myapp_clickImg(obj){MyApp.invokeImg(obj.src);}</script>";
         strHeader += "</head><body>";
-//        String strResize = "<script>function resizeImage2(mm){var width = eval(mm.width);var height = eval(mm.height);if( width > 300 ){var p_height = 300 / width;var new_height = height * p_height;eval(mm.width = 300);eval(mm.height = new_height);}} function image_open(src, mm) {var src1 = 'image2.php?imgsrc='+src;window.open(src1,'image','width=1,height=1,scrollbars=yes,resizable=yes');}</script>";
+        String strResize = "<script>function resizeImage2(mm){var width = eval(mm.width);var height = eval(mm.height);if( width > 300 ){var p_height = 300 / width;var new_height = height * p_height;eval(mm.width = 300);eval(mm.height = new_height);}} function image_open(src, mm) {var src1 = 'image2.php?imgsrc='+src;window.open(src1,'image','width=1,height=1,scrollbars=yes,resizable=yes');}</script>";
         String strBottom = "</body></html>";
 
-        m_strHTML = strHeader + m_strBoardContent + strImage + strBottom;
+        m_strHTML = strHeader + strResize + m_strAttach + strImage + m_strContent + strBottom;
 
         return true;
+    }
+
+    protected void parseAttach() {
+        HashMap<String, String> item;
+        Matcher m = Utils.getMatcher("(<li)(.|\\n)*?(</li>)", m_strAttach);
+        while (m.find()) { // Find each match in turn; String can't do this.
+            item = new HashMap<String, String>();
+            String matchstr = m.group(0);
+
+            // Key
+            String strKey = Utils.getMatcherFirstString("(?<=href=\\\")(.|\\n)*?(?=\\\")", matchstr);
+            strKey = strKey.replaceAll("&amp;", "&");
+            item.put("key",  strKey);
+
+            // Value
+            String strValue = Utils.getMatcherFirstString("(?<=<strong>).*?(?=</strong>)", matchstr);
+            item.put("value",  strValue);
+
+            m_arrayAttach.add( item );
+        }
     }
 
     @Override
@@ -646,7 +678,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
     public void addReArticle() {
         Intent intent = new Intent(this, ArticleWriteActivity.class);
-        int nMode = 0;      // i is modify article
+        intent.putExtra("mode", GlobalConst.REPLY);
         intent.putExtra("commId", m_strCommId);
         intent.putExtra("boardId", m_strBoardId);
         intent.putExtra("boardNo", m_strBoardNo);
@@ -657,8 +689,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
     public void modifyArticle() {
         Intent intent = new Intent(this, ArticleWriteActivity.class);
-        int nMode = 1;      // i is modify article
-        intent.putExtra("mode", nMode);
+        intent.putExtra("mode", GlobalConst.MODIFY);
         intent.putExtra("commId", m_strCommId);
         intent.putExtra("boardId", m_strBoardId);
         intent.putExtra("boardNo", m_strBoardNo);
@@ -669,8 +700,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
     public void addComment() {
         Intent intent = new Intent(this, CommentWriteActivity.class);
-        int nMode = 0;      // i is modify article
-        intent.putExtra("mode", nMode);
+        intent.putExtra("mode", GlobalConst.WRITE);
         intent.putExtra("isPNotice", m_nPNotice);
         intent.putExtra("commId", m_strCommId);
         intent.putExtra("boardId", m_strBoardId);
@@ -726,6 +756,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         item = m_arrayItems.get(cnt);
         m_strComment = (String)item.get("comment");
         m_strCommentNo = (String)item.get("commentno");
+        m_strDeleteLink = (String)item.get("deletelink");
         int isReply = (Integer)item.get("isReply");
         PopupMenu popup = new PopupMenu(this, v);
         Menu menu = popup.getMenu();
@@ -757,8 +788,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
     public void ReplayComment() {
         Intent intent = new Intent(this, CommentWriteActivity.class);
-        int nMode = 0;
-        intent.putExtra("mode", nMode);
+        intent.putExtra("mode", GlobalConst.REPLY);
         intent.putExtra("commId", m_strCommId);
         intent.putExtra("boardId", m_strBoardId);
         intent.putExtra("boardNo", m_strBoardNo);
@@ -770,8 +800,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
     protected void ModifyComment() {
         Intent intent = new Intent(this, CommentWriteActivity.class);
-        int nMode = 1;
-        intent.putExtra("mode", nMode);
+        intent.putExtra("mode", GlobalConst.MODIFY);
         intent.putExtra("isPNotice", m_nPNotice);
         intent.putExtra("commId", m_strCommId);
         intent.putExtra("boardId", m_strBoardId);
@@ -819,27 +848,18 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     }
 
     protected void runDeleteCommentPNotice() {
-        String url = "http://www.gongdong.or.kr/index.php";
-        String strPostParam = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n" +
-                "<methodCall>\n" +
-                "<params>\n" +
-                "<_filter><![CDATA[delete_comment]]></_filter>\n" +
-                "<error_return_url><![CDATA[/index.php?mid=notice&document_srl=" + m_strBoardNo + "&act=dispBoardDeleteComment&comment_srl=" + m_strCommentNo + "]]></error_return_url>\n" +
-                "<act><![CDATA[procBoardDeleteComment]]></act>\n" +
-                "<mid><![CDATA[notice]]></mid>\n" +
-                "<document_srl><![CDATA[" + m_strBoardNo + "]]></document_srl>\n" +
-                "<comment_srl><![CDATA[" + m_strCommentNo + "]]></comment_srl>\n" +
-                "<module><![CDATA[board]]></module>\n" +
-                "</params>\n" +
-                "</methodCall>";
-        String strReferer = "http://www.gongdong.or.kr/index.php?mid=notice&document_srl=" + m_strBoardNo + "&act=dispBoardDeleteComment&comment_srl=" + m_strCommentNo;
-        String result  = m_app.m_httpRequest.requestPost(url, strPostParam, strReferer, "utf-8");
+        if (m_strDeleteLink.isEmpty()) return;
+        String url = GlobalConst.WWW_SERVER + "/bbs/" + m_strDeleteLink;
+        String referer = GlobalConst.WWW_SERVER + "/bbs/board.php?bo_table=" + m_strBoardId + "&wr_id=" + m_strBoardNo;
+        String result  = m_app.m_httpRequest.requestGet(url, referer, "utf-8");
 
         m_bDeleteStatus = true;
-        if (!result.contains("<error>0</error>")) {
-            String strErrorMsg = Utils.getMatcherFirstString("(?<=<message>)(.|\\n)*?(?=</message>)", result);
-            m_bDeleteStatus = false;
+        if (result.contains("<title>오류안내 페이지")) {
+            String strErrorMsg = Utils.getMatcherFirstString("(<p class=\\\"cbg\\\">).*?(</p>)", result);
+            strErrorMsg = Utils.repalceHtmlSymbol(strErrorMsg);
             m_strErrorMsg = "댓글 삭제중 오류가 발생했습니다. \n" + strErrorMsg;
+            m_bDeleteStatus = false;
+            return;
         }
     }
 
