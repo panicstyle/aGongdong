@@ -9,8 +9,8 @@ android {
         applicationId "com.panicstyle.Gongdong"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 25
-        versionName "3.6.0"
+        versionCode 26
+        versionName "3.7.0"
     }
     buildTypes {
         release {

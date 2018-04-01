@@ -391,6 +391,14 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 //    	Intent intent = getIntent();  // 값을 가져오는 인텐트 객체생성
     	Bundle extras = getIntent().getExtras();
     	// 가져온 값을 set해주는 부분
+        String PNotice = extras.getString("PNotice");
+        if (PNotice == null) PNotice = "";
+
+        if (PNotice.equalsIgnoreCase("pnotice")) {
+            m_nPNotice = 1;
+        } else {
+            m_nPNotice = 0;
+        }
     	m_nPNotice = extras.getInt("isPNotice");
     	m_nNotice = extras.getInt("isNotice");
         m_nMode = extras.getInt("mode");
