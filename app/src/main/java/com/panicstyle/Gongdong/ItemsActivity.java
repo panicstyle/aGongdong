@@ -388,9 +388,39 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		}
 	}
 
+	protected String removeImgData(String src) {
+    	String in = src;
+    	String out = "";
+    	int i = 0;
+    	int j = 0;
+    	int k = 0;
+
+    	String find1 = "<img src='data:image";
+    	String find2 = "/>";
+
+    	while (true) {
+			i = in.indexOf(find1);
+			if (i < 0) break;
+			if (k > 20) break;
+			j = in.indexOf(find2, i + find1.length());
+
+			out = in.substring(0, i);
+			out += in.substring(j + find2.length(), in.length());
+			in = out;
+			k++;
+		}
+
+    	return out;
+	}
+
 	protected boolean getDataNormalMode(String result) {
         // 각 항목 찾기
         HashMap<String, Object> item;
+
+        // img 가 data로 들어온 경우 정규식으로 찾지 못하는 문제. 해당 부분을 미리 삭제해야 함.
+		// 아래 코드도 역시 오류 발생
+		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
+		result = removeImgData(result);
 
 		Matcher m = Utils.getMatcher("(id=\\\"board_list_line\\\")(.|\\n)*?(</tr>)", result);
         while (m.find()) { // Find each match in turn; String can't do this.
