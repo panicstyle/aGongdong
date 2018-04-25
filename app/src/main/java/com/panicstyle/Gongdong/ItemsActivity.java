@@ -390,7 +390,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 
 	protected String removeImgData(String src) {
     	String in = src;
-    	String out = "";
+    	String out = src;
     	int i = 0;
     	int j = 0;
     	int k = 0;
