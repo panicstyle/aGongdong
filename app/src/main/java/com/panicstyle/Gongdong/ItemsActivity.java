@@ -45,12 +45,13 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 	protected String m_strBoardId;
 	protected String m_strBoardNo;
 	protected String m_strBoardName;
+	public static int m_nType;
     private List<HashMap<String, Object>> m_arrayItems;
     private int m_nPage;
     static final int REQUEST_WRITE = 1;
     static final int REQUEST_VIEW = 2;
     protected int m_LoginStatus;
-	public static int m_nMode;
+	public static int m_nMode = 1;
 	private EfficientAdapter m_adapter;
 	private GongdongApplication m_app;
 
@@ -362,19 +363,137 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		m_strCommId = extras.getString("commId");
 		m_strBoardId = extras.getString("boardId");
 		m_strBoardName = extras.getString("boardName");
+		m_nType = extras.getInt("type");
 //		m_itemsLink = extras.getString("ITEMS_LINK");
 
 //		m_CommID = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", m_itemsLink);
 //		m_BoardID = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=$)", m_itemsLink);
 	}
 
-    protected boolean getData() {
+	protected boolean getData() {
+		if (m_nType == GlobalConst.CAFE_SUB_MENU_NORMAL) {
+			return getDataCommunity();
+		} else if (m_nType == GlobalConst.BOARD_TYPE_NOTICE) {
+			return getDataNotice();
+		} else if (m_nType == GlobalConst.BOARD_TYPE_CENTER) {
+			return getDataCenter();
+		} else if (m_nType == GlobalConst.BOARD_TYPE_ING) {
+			return getDataIng();
+		} else if (m_nType == GlobalConst.BOARD_TYPE_APPLY) {
+			return getDataApply();
+		}
+		return true;
+	}
+
+	protected boolean getDataNotice() {
+    	m_nMode = 1;
+
+		String url = "http://www.gongdong.or.kr/bbs/board.php?bo_table=" + m_strBoardId + "&page=%d" + Integer.toString(m_nPage);
+		String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
+
+		if (result.indexOf("window.alert(\"권한이 없습니다") > 0 || result.indexOf("window.alert(\"로그인 하세요") > 0 ) {
+			return false;
+		}
+		// 각 항목 찾기
+		HashMap<String, Object> item;
+
+		// img 가 data로 들어온 경우 정규식으로 찾지 못하는 문제. 해당 부분을 미리 삭제해야 함.
+		// 아래 코드도 역시 오류 발생
+		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
+		result = removeImgData(result);
+
+		Matcher m = Utils.getMatcher("(<tr class=)(.|\\n)*?(</tr>)", result);
+		while (m.find()) { // Find each match in turn; String can't do this.
+			item = new HashMap<String, Object>();
+			String matchstr = m.group(0);
+			int isNoti = 0;
+
+			// find [공지]
+			item.put("isPNotice", 0);
+
+			// find [공지]
+			if (matchstr.contains("<tr class=\"bo_notice")) {
+				item.put("isNotice", 1);
+				isNoti = 1;
+			} else {
+				item.put("isNotice", 0);
+			}
+
+			// comment 삭제
+			matchstr.replaceAll("(<!--)(.|\\n)*?(-->)", "");
+
+			// subject
+			String strSubject;
+			strSubject = Utils.getMatcherFirstString("(<td class=\\\"td_subject)(.|\\n)*?(</a>)", matchstr);
+
+			// link
+			String strLink = Utils.getMatcherFirstString("(?<=<a href=\\\")(.|\\n)*?(?=\\\")", strSubject);
+			String boardId = Utils.getMatcherFirstString("(?<=bo_table=)(.|\\n)*?(?=[&|$])", strLink);
+			String boardNo = Utils.getMatcherFirstString("(?<=wr_id=)(.|\\n)*?(?=(&|$))", strLink);
+			item.put("commId", "center");
+			item.put("boardId", boardId);
+			item.put("boardNo", boardNo);
+
+			// comment
+			String strComment = Utils.getMatcherFirstString("(?<=<span class=\\\"cnt_cmt\\\">)(.|\\n)*?(?=</span>)", strSubject);
+			item.put("comment", strComment);
+
+			strSubject = strSubject.replaceAll("(<span class=\\\"sound)(.|\\n)*?(개</span>)", "");
+			strSubject = Utils.repalceHtmlSymbol(strSubject);
+			item.put("subject", strSubject);
+
+			item.put("isNew", 0);
+
+			item.put("isReply", 0);
+
+			if (m_nType == GlobalConst.BOARD_TYPE_NOTICE) {
+				if (isNoti == 1) {
+					item.put("name", "[공지]");
+					item.put("id", "[공지]");
+				} else if (isNoti == 2) {
+					item.put("name", "[법인공지]");
+					item.put("id", "[법인공지]");
+				}
+			} else {
+				// name
+				String strName = Utils.getMatcherFirstString("(?<=<td class=\\\"author\\\">)(.|\\n)*?(?=</td>)", matchstr);
+				strName = strName.replaceAll("<((.|\\n)*?)+>", "");
+				item.put("name", strName);
+			}
+
+			// date
+			String strDate = Utils.getMatcherFirstString("(?<=<td class=\\\"td_date\\\">)(.|\\n)*?(?=</td>)", matchstr);
+			item.put("date", strDate);
+
+			// 조회수
+			String strHit = Utils.getMatcherFirstString("(?<=<td class=\\\"td_num\\\">)[0-9.]+(?=</td>)", matchstr);
+			item.put("hit", strHit);
+
+			m_arrayItems.add( item );
+		}
+
+		return true;
+	}
+
+	protected boolean getDataCenter() {
+		return true;
+	}
+
+	protected boolean getDataIng() {
+		return true;
+	}
+
+	protected boolean getDataApply() {
+		return true;
+	}
+
+	protected boolean getDataCommunity() {
 		String Page = Integer.toString(m_nPage);
 //		http://cafe.gongdong.or.kr/cafe.php?p1=menbal&sort=35
 		String url = "http://cafe.gongdong.or.kr/cafe.php?p1=" + m_strCommId + "&sort=" + m_strBoardId + "&page=" + Page;
         String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
 
-        if (result.length() < 200) {
+        if (result.indexOf("window.alert(\"권한이 없습니다") > 0 || result.indexOf("window.alert(\"로그인 하세요") > 0 ) {
         	return false;
         }
 

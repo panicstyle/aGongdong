@@ -20,6 +20,7 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -60,7 +61,7 @@ public class BoardActivity extends AppCompatActivity implements Runnable {
             int isNew = (Integer)item.get("isNew");
             int nType = (Integer)item.get("type");
 
-            if (nType == 1) {
+            if (nType == GlobalConst.CAFE_SUB_MENU_TITLE) {
                 convertView = mInflater.inflate(R.layout.list_group_boardview, null);
                 GroupHolder holder;
                 holder = new GroupHolder();
@@ -107,26 +108,31 @@ public class BoardActivity extends AppCompatActivity implements Runnable {
                 item = m_arrayItems.get(position);
                 int nType = (Integer) item.get("type");
 
-                if (nType == 1 || nType == 2) return;
+                if (nType == GlobalConst.CAFE_SUB_MENU_TITLE) return;
 
                 String boardName = (String) item.get("boardName");
 //                String link = (String) item.get("link");
                 String commId = (String) item.get("commId");
                 String boardId = (String) item.get("boardId");
 
-                int isCal = (Integer) item.get("isCal");
-
-                if (isCal == 1) {
+                if (nType == GlobalConst.CAFE_SUB_MENU_CAL) {
                     Intent intent = new Intent(BoardActivity.this, CalendarActivity.class);
                     intent.putExtra("boardName", boardName);
                     intent.putExtra("commId", commId);
                     intent.putExtra("boardId", boardId);
+                    startActivity(intent);
+                } else if (nType == GlobalConst.CAFE_SUB_MENU_LINK) {
+                    String strLink = (String) item.get("link");
+                    Intent intent = new Intent(BoardActivity.this, WebViewActivity.class);
+                    intent.putExtra("ITEMS_TITLE", boardName);
+                    intent.putExtra("ITEMS_LINK", strLink);
                     startActivity(intent);
                 } else {
                     Intent intent = new Intent(BoardActivity.this, ItemsActivity.class);
                     intent.putExtra("boardName", boardName);
                     intent.putExtra("commId", commId);
                     intent.putExtra("boardId", boardId);
+                    intent.putExtra("type", nType);
                     startActivity(intent);
                 }
             }
@@ -181,7 +187,69 @@ public class BoardActivity extends AppCompatActivity implements Runnable {
     }
 
     protected boolean getData() {
-		
+
+        // ing는 소통&참여, edu는 각종신청, 나머지는 일반 커뮤니티
+        if (m_strCommId.equals("ing")) {
+            return getDataIng();
+        } else if (m_strCommId.equals("edu")) {
+            return getDataEdu();
+        } else {
+            return getDataCommunity();
+        }
+    }
+
+    protected boolean getDataIng() {
+
+        Object[][] arr = {
+            {"B211", "공지사항", GlobalConst.BOARD_TYPE_NOTICE},
+            {"B221", "법인일정", GlobalConst.BOARD_TYPE_CAL},
+            {"B231", "공동육아ing", GlobalConst.BOARD_TYPE_ING},
+            {"B271", "무엇이든 물어보세요", GlobalConst.BOARD_TYPE_CENTER},
+            {"B281", "알리고싶어요", GlobalConst.BOARD_TYPE_CENTER},
+            {"B251", "교사모집/구직", GlobalConst.BOARD_TYPE_CENTER},
+            {"B261", "조합원모집", GlobalConst.BOARD_TYPE_CENTER},
+            {"B301", "터전소식", GlobalConst.BOARD_TYPE_CENTER},
+        };
+        // 각 항목 찾기
+        for (int i = 0; i < arr.length; i++) {
+            HashMap<String, Object> item;
+            item = new HashMap<>();
+
+            item.put("type", arr[i][2]);
+            item.put("commId", m_strCommId);
+            item.put("boardId", arr[i][0]);
+            item.put("boardName", arr[i][1]);
+            item.put("isNew", 0);
+            m_arrayItems.add(item);
+        }
+        return true;
+    }
+
+    protected boolean getDataEdu() {
+
+        Object[][] arr = {
+                {"교사교육", "교사교육", GlobalConst.BOARD_TYPE_APPLY},
+                {"부모교육", "부모교육", GlobalConst.BOARD_TYPE_APPLY},
+                {"운영진교육", "운영진교육", GlobalConst.BOARD_TYPE_APPLY},
+                {"열린교육", "열린교육", GlobalConst.BOARD_TYPE_APPLY},
+        };
+        // 각 항목 찾기
+        for (int i = 0; i < arr.length; i++) {
+            HashMap<String, Object> item;
+            item = new HashMap<>();
+
+            item.put("type", arr[i][2]);
+            item.put("commId", m_strCommId);
+            item.put("boardId", arr[i][0]);
+            item.put("boardName", arr[i][1]);
+            item.put("isNew", 0);
+            m_arrayItems.add(item);
+        }
+        return true;
+    }
+
+    protected boolean getDataCommunity() {
+
 		String url = "http://cafe.gongdong.or.kr/cafe.php?code=" + m_strCommId;
 		String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
 
@@ -196,18 +264,18 @@ public class BoardActivity extends AppCompatActivity implements Runnable {
             if (matchstr.contains("cafe_sub_menu_line")) {
             	continue;
             } else if (matchstr.contains("cafe_sub_menu_title")) {
-            	item.put("type", 1);
+            	item.put("type", GlobalConst.CAFE_SUB_MENU_TITLE);
             } else if (matchstr.contains("cafe_sub_menu_link")) {
-            	item.put("type", 2);
+            	item.put("type", GlobalConst.CAFE_SUB_MENU_LINK);
             } else {
-            	item.put("type", 0);
+            	item.put("type", GlobalConst.CAFE_SUB_MENU_NORMAL);
             }
             
             // link
             String strLink = Utils.getMatcherFirstString("(?<=<a href=\\\")(.|\\n)*?(?=\\\")", matchstr);
 		    String commId = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", strLink);
        	    String boardId = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=$)", strLink);
-//            item.put("link", strLink);
+            item.put("link", strLink);
             item.put("commId", commId);
             item.put("boardId", boardId);
 
@@ -223,9 +291,7 @@ public class BoardActivity extends AppCompatActivity implements Runnable {
             }
             // isCal
             if (matchstr.contains("sort=cal")) {
-                item.put("isCal", 1);
-            } else {
-            	item.put("isCal", 0);
+                item.put("type", GlobalConst.CAFE_SUB_MENU_CAL);
             }
             m_arrayItems.add( item );
         }

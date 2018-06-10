@@ -39,14 +39,14 @@ public class MainActivity extends AppCompatActivity implements Runnable {
     private int m_LoginStatus;
     static final int SETUP_CODE = 1234;
     private String m_strErrorMsg = "";
-    private List<HashMap<String, String>> m_arrayItems;
+    private List<HashMap<String, Object>> m_arrayItems;
     private GongdongApplication m_app;
 
     private static class EfficientAdapter extends BaseAdapter {
         private LayoutInflater mInflater;
-        List<HashMap<String, String>> arrayItems;
+        List<HashMap<String, Object>> arrayItems;
 
-        public EfficientAdapter(Context context, List<HashMap<String, String>> data) {
+        public EfficientAdapter(Context context, List<HashMap<String, Object>> data) {
             mInflater = LayoutInflater.from(context);
             arrayItems = data;
         }
@@ -64,29 +64,34 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         }
 
         public View getView(int position, View convertView, ViewGroup parent) {
-            ViewHolder holder;
-
-            if (convertView == null) {
-                convertView = mInflater.inflate(R.layout.list_item_main, null);
-
-                holder = new ViewHolder();
-                holder.title = (TextView) convertView.findViewById(R.id.title);
-
-                convertView.setTag(holder);
-            } else {
-                holder = (ViewHolder) convertView.getTag();
-            }
-            HashMap<String, String> item;;
+            HashMap<String, Object> item;;
             String title;
             item = arrayItems.get(position);
-            title = item.get("commName");
+            title = (String)item.get("commName");
+            int nType = (Integer)item.get("type");
 
-            holder.title.setText(title);
-
+            if (nType == 1) {
+                convertView = mInflater.inflate(R.layout.list_group_boardview, null);
+                GroupHolder holder;
+                holder = new GroupHolder();
+                holder.title = (TextView) convertView.findViewById(R.id.title);
+                convertView.setTag(holder);
+                holder.title.setText(title);
+            } else {
+                ViewHolder holder;
+                convertView = mInflater.inflate(R.layout.list_item_main, null);
+                holder = new ViewHolder();
+                holder.title = (TextView) convertView.findViewById(R.id.title);
+                convertView.setTag(holder);
+                holder.title.setText(title);
+            }
             return convertView;
         }
 
         static class ViewHolder {
+            TextView title;
+        }
+        static class GroupHolder {
             TextView title;
         }
     }
@@ -125,15 +130,15 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         setContentView(R.layout.activity_main);
 
         m_listView = (ListView) findViewById(R.id.listView);
-        m_arrayItems = new ArrayList<HashMap<String, String>>();
+        m_arrayItems = new ArrayList<HashMap<String, Object>>();
 
         m_listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
               @Override
               public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                  HashMap<String, String> item = new HashMap<String, String>();
+                  HashMap<String, Object> item = new HashMap<String, Object>();
                   String title = null;
                   String code = null;
-                  item = (HashMap<String, String>) m_arrayItems.get(position);
+                  item = (HashMap<String, Object>) m_arrayItems.get(position);
                   title = (String) item.get("commName");
                   code = (String) item.get("commId");
 
@@ -273,19 +278,38 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         // Direct use of Pattern:
         String cafelist = Utils.getMatcherFirstString("(<select name=\\\"select_community)(.|\\n)*?(</select>)", result);
         //
-        HashMap<String, String> item;
+        HashMap<String, Object> item;
 
-/*
-        // 테스트를 위해 사이트 직접 추가
-        item = new HashMap<String, String>();
-        item.put("commId", "urinori");
-        item.put("commName", "우리노리");
+        // 공동육아와 공동체교육 그룹
+        item = new HashMap<String, Object>();
+        item.put("commId", "-");
+        item.put("commName", "공동육아와 공동체교육");
+        item.put("type", 1);
         m_arrayItems.add(item);
-*/
+
+        // 공동육아 소통&참여, 각종신청 메뉴 추가
+        item = new HashMap<String, Object>();
+        item.put("commId", "ing");
+        item.put("commName", "소통&참여");
+        item.put("type", 0);
+        m_arrayItems.add(item);
+
+        item = new HashMap<String, Object>();
+        item.put("commId", "edu");
+        item.put("commName", "각종신청");
+        item.put("type", 0);
+        m_arrayItems.add(item);
+
+        // 내 커뮤니티 그룹
+        item = new HashMap<String, Object>();
+        item.put("commId", "-");
+        item.put("commName", "내 커뮤니티");
+        item.put("type", 1);
+        m_arrayItems.add(item);
 
         Matcher m = Utils.getMatcher("(<option value=)(.|\\n)*?(</option>)", cafelist);
         while (m.find()) { // Find each match in turn; String can't do this.
-            item = new HashMap<String, String>();
+            item = new HashMap<String, Object>();
             String option = m.group(0);
             System.out.println(option);
 
@@ -298,6 +322,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
             String title = option.replaceAll("<((.|\\n)*?)+>", "");
             title = title.trim();
             item.put("commName", title);
+            item.put("type", 0);
 
             m_arrayItems.add( item );
         }
