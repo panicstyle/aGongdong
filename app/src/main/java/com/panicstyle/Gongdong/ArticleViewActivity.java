@@ -75,7 +75,6 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     private int m_nPNotice;
     private int m_nNotice;
     private int m_nMode;
-    private String m_strBoardTitle;
     private String m_strName;
     private String m_strID;
     private String m_strHit;
@@ -142,11 +141,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         if (m_nThreadMode == 1) {         // LoadData
             boolean ret;
 
-            if (m_nPNotice == 0) {
-                ret = getData();
-            } else {
-                ret = getDataPNotice();
-            }
+            ret = getData();
             if (!ret) {
                 // Login
                 Login login = new Login();
@@ -249,7 +244,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
             LinearLayout ll;
 
             tvSubject = (TextView) findViewById(R.id.subject);
-            tvSubject.setText(m_strBoardTitle);
+            tvSubject.setText(m_strTitle);
 
             tvName = (TextView) findViewById(R.id.name);
             tvName.setText(m_strName);
@@ -391,6 +386,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 //    	Intent intent = getIntent();  // 값을 가져오는 인텐트 객체생성
     	Bundle extras = getIntent().getExtras();
     	// 가져온 값을 set해주는 부분
+//        m_nPNotice = extras.getInt("isPNotice");
         String PNotice = extras.getString("PNotice");
         if (PNotice == null) PNotice = "";
 
@@ -399,36 +395,21 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         } else {
             m_nPNotice = 0;
         }
-    	m_nPNotice = extras.getInt("isPNotice");
-    	m_nNotice = extras.getInt("isNotice");
-        m_nMode = extras.getInt("mode");
-    	m_strBoardTitle = extras.getString("boardTitle");
-    	m_strName = extras.getString("userName");
-    	m_strID = extras.getString("userId");
-    	m_strDate = extras.getString("date");
-//    	m_strLink = extras.getString("link");
-        m_strHit = extras.getString("hit");
 
         m_strCommId = extras.getString("commId");
         m_strBoardId = extras.getString("boardId");
         m_strBoardNo = extras.getString("boardNo");
-
-/*
-        if (m_nPNotice != 1) {
-            m_strCommId = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", m_strLink);
-            m_strBoardId = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=&)", m_strLink);
-            m_strBoardNo = Utils.getMatcherFirstString("(?<=number=)(.|\\n)*?(?=&)", m_strLink);
-        } else {
-            m_strBoardNo = Utils.getMatcherFirstString("(?<=http://www.gongdong.or.kr/notice/)(.|\\n)*?(?=$)", m_strLink);
-            m_strCommId = "";
-            m_strBoardId = "";
-        }
-*/
     }
 
     protected boolean getData() {
+        if (m_nPNotice == 0) {
+            return getDataCommunity();
+        } else {
+            return getDataPNotice();
+        }
+    }
 
-        // http://cafe.gongdong.or.kr/cafe.php?sort=45&sub_sort=&page=&startpage=&keyfield=&key_bs=&p1=menbal&p2=&p3=&number=1280159&mode=view
+    protected boolean getDataCommunity() {
 		String url = "http://cafe.gongdong.or.kr/cafe.php?sort=" + m_strBoardId + "&sub_sort=&page=&startpage=&keyfield=&key_bs=&p1="
                 + m_strCommId + "&p2=&p3=&number=" + m_strBoardNo + "&mode=view";
         String result = m_app.m_httpRequest.requestGet(url, url, "utf-8");
@@ -442,6 +423,9 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         	return false;
         }
 
+        m_strTitle = Utils.getMatcherFirstString("(<!-- 제목 부분 -->)(.|\\n)*?(</td>)", result);
+        m_strTitle = Utils.repalceHtmlSymbol(m_strTitle);
+        m_strHit = Utils.getMatcherFirstString("(?<=</span>, &nbsp;조회 : )(.|\\n)*?(?=</div>)", result);
         m_strBoardContent = Utils.getMatcherFirstString("(?<=<!---- contents start 본문 표시 부분 DJ ---->)(.|\\n)*?(?=<!---- contents end ---->)", result);
         String strImage = Utils.getMatcherFirstString("(<p align=center><img onload=\\\"resizeImage2[(]this[)]\\\")(.|\\n)*?(</td>)", result);
         String strCommentBody = Utils.getMatcherFirstString("(?<=<!-- 댓글 시작 -->)(.|\\n)*?(?=<!-- 댓글 끝 -->)", result);
@@ -516,8 +500,6 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
     protected boolean getDataPNotice() {
 
-//        String url = m_strLink;
-//        http://www.gongdong.or.kr/notice/343365
         String url = "http://www.gongdong.or.kr/bbs/board.php?bo_table=" + m_strBoardId + "&wr_id=" + m_strBoardNo;
         String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
 
@@ -701,7 +683,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         intent.putExtra("commId", m_strCommId);
         intent.putExtra("boardId", m_strBoardId);
         intent.putExtra("boardNo", m_strBoardNo);
-        intent.putExtra("boardTitle", m_strBoardTitle);
+        intent.putExtra("boardTitle", m_strTitle);
         intent.putExtra("boardContent", m_strBoardContent);
         startActivityForResult(intent, REQUEST_MODIFY);
     }

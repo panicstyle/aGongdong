@@ -111,7 +111,6 @@ public class BoardActivity extends AppCompatActivity implements Runnable {
                 if (nType == GlobalConst.CAFE_SUB_MENU_TITLE) return;
 
                 String boardName = (String) item.get("boardName");
-//                String link = (String) item.get("link");
                 String commId = (String) item.get("commId");
                 String boardId = (String) item.get("boardId");
 
@@ -123,6 +122,12 @@ public class BoardActivity extends AppCompatActivity implements Runnable {
                     startActivity(intent);
                 } else if (nType == GlobalConst.CAFE_SUB_MENU_LINK) {
                     String strLink = (String) item.get("link");
+                    Intent intent = new Intent(BoardActivity.this, WebViewActivity.class);
+                    intent.putExtra("ITEMS_TITLE", boardName);
+                    intent.putExtra("ITEMS_LINK", strLink);
+                    startActivity(intent);
+                } else if (nType == GlobalConst.BOARD_TYPE_CAL) {
+                    String strLink = "http://www.gongdong.or.kr/bbs/board.php?bo_table=" + boardId;
                     Intent intent = new Intent(BoardActivity.this, WebViewActivity.class);
                     intent.putExtra("ITEMS_TITLE", boardName);
                     intent.putExtra("ITEMS_LINK", strLink);
