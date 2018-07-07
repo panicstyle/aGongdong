@@ -237,6 +237,7 @@ public class BoardActivity extends AppCompatActivity implements Runnable {
                 {"부모교육", "부모교육", GlobalConst.BOARD_TYPE_APPLY},
                 {"운영진교육", "운영진교육", GlobalConst.BOARD_TYPE_APPLY},
                 {"열린교육", "열린교육", GlobalConst.BOARD_TYPE_APPLY},
+                {"시민교육", "시민교육", GlobalConst.BOARD_TYPE_APPLY},
         };
         // 각 항목 찾기
         for (int i = 0; i < arr.length; i++) {

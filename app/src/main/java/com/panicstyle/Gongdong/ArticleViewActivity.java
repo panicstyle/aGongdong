@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -358,7 +359,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         ArticleViewActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                webContent.setLayoutParams(new LinearLayout.LayoutParams(getResources().getDisplayMetrics().widthPixels - 120, (int) (height * getResources().getDisplayMetrics().density)));
+                webContent.setLayoutParams(new LinearLayout.LayoutParams(getResources().getDisplayMetrics().widthPixels - 120, (int) (height * getResources().getDisplayMetrics().density) + 20));
             }
         });
     }
@@ -425,6 +426,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
         m_strTitle = Utils.getMatcherFirstString("(<!-- 제목 부분 -->)(.|\\n)*?(</td>)", result);
         m_strTitle = Utils.repalceHtmlSymbol(m_strTitle);
+        m_strTitle = Html.fromHtml(m_strTitle).toString();
         m_strHit = Utils.getMatcherFirstString("(?<=</span>, &nbsp;조회 : )(.|\\n)*?(?=</div>)", result);
         m_strBoardContent = Utils.getMatcherFirstString("(?<=<!---- contents start 본문 표시 부분 DJ ---->)(.|\\n)*?(?=<!---- contents end ---->)", result);
         String strImage = Utils.getMatcherFirstString("(<p align=center><img onload=\\\"resizeImage2[(]this[)]\\\")(.|\\n)*?(</td>)", result);
@@ -469,6 +471,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
                 strComment = Utils.getMatcherFirstString("(?<=<td colspan=\\\"2\\\">)(.|\\n)*?(?=</div>)", matchstr);
             }
             strComment = Utils.repalceHtmlSymbol(strComment);
+            strComment = Html.fromHtml(strComment).toString();
             item.put("comment",  strComment);
 
             // is Re
@@ -506,12 +509,14 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         if (result.length() < 200
                 || result.indexOf("window.alert(\"권한이 없습니다") >= 0
                 || result.indexOf("window.alert(\"로그인 하세요") >= 0
+                || result.indexOf("<strong>비밀글 기능으로 보호된 글입니다.</strong>") >= 0
                 ) {
             return false;
         }
 
         m_strTitle = Utils.getMatcherFirstString("(?<=<h1 id=\\\"bo_v_title\\\">)(.|\\n)*?(?=</h1>)", result);
         m_strTitle = Utils.repalceHtmlSymbol(m_strTitle);
+        m_strTitle = Html.fromHtml(m_strTitle).toString();
 
         m_strName = Utils.getMatcherFirstString("(?<=<span class=\\\"sv_member\\\">)(.|\\n)*?(?=</span>)", result);
 
@@ -519,7 +524,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
         m_strHit = Utils.getMatcherFirstString("(?<=조회<strong>)(.|\\n)*?(?=회</strong>)", result);
 
-        m_strContent = Utils.getMatcherFirstString("(<!-- 본문 내용 시작)(.|\\n)*?(본문 내용 끝 -->)", result);
+        m_strContent = Utils.getMatcherFirstString("(<!-- 본문 내용)(.|\\n)*?(내용 끝 -->)", result);
         m_strContent = m_strContent.replaceAll("<img ", "<img onload=\"resizeImage2(this)\" ");
 
         m_strAttach = Utils.getMatcherFirstString("(<!-- 첨부파일 시작)(.|\\n)*?(첨부파일 끝 -->)", result);
@@ -568,6 +573,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
             // comment
             String strComment = Utils.getMatcherFirstString("(<!-- 댓글 출력 -->)(.|\\n)*?(<!-- 수정 -->)", matchstr);
             strComment = Utils.repalceHtmlSymbol(strComment);
+            strComment = Html.fromHtml(strComment).toString();
             item.put("comment",  strComment);
 
             // delete link
@@ -847,6 +853,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         if (result.contains("<title>오류안내 페이지")) {
             String strErrorMsg = Utils.getMatcherFirstString("(<p class=\\\"cbg\\\">).*?(</p>)", result);
             strErrorMsg = Utils.repalceHtmlSymbol(strErrorMsg);
+            strErrorMsg = Html.fromHtml(strErrorMsg).toString();
             m_strErrorMsg = "댓글 삭제중 오류가 발생했습니다. \n" + strErrorMsg;
             m_bDeleteStatus = false;
             return;

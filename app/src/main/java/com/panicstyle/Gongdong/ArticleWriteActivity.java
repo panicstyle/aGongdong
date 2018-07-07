@@ -18,6 +18,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -71,7 +72,11 @@ public class ArticleWriteActivity extends AppCompatActivity implements Runnable 
         if (m_nMode == GlobalConst.MODIFY) {
             setTitle("글수정");
             m_strBoardTitle = Utils.repalceHtmlSymbol(m_strBoardTitle);
+            m_strBoardTitle = Html.fromHtml(m_strBoardTitle).toString();
+
             m_strBoardContent = Utils.repalceHtmlSymbol(m_strBoardContent);
+            m_strBoardContent = Html.fromHtml(m_strBoardContent).toString();
+
             EditText textTitle = (EditText)findViewById(R.id.editTitle);
             textTitle.setText(m_strBoardTitle);
             EditText textContent = (EditText) findViewById(R.id.editContent);
