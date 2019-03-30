@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -52,6 +53,7 @@ public class CommentWriteActivity extends AppCompatActivity implements Runnable 
             setTitle("댓글수정");
             m_strWmode = "cu";
             m_strComment = Utils.repalceHtmlSymbol(m_strComment);
+            m_strComment = Html.fromHtml(m_strComment).toString();
             EditText tContent = (EditText) findViewById(R.id.editContent);
             tContent.setText(m_strComment);
         } else {
@@ -108,15 +110,15 @@ public class CommentWriteActivity extends AppCompatActivity implements Runnable 
     }
 
     public void run() {
-        if (m_nMode == GlobalConst.WRITE) {
+        if (m_nMode == GlobalConst.MODIFY) {
             if (m_nPNotice == 0) {
-                PostData();
+                PostModifyData();
             } else {
                 PostDataPNotice();
             }
         } else {
             if (m_nPNotice == 0) {
-                PostModifyData();
+                PostData();
             } else {
                 PostDataPNotice();
             }
@@ -225,6 +227,7 @@ public class CommentWriteActivity extends AppCompatActivity implements Runnable 
         if (result.contains("<title>오류안내 페이지")) {
             m_ErrorMsg = Utils.getMatcherFirstString("(<p class=\\\"cbg\\\">)(.|\\n)*?(</p>)", result);
             m_ErrorMsg = Utils.repalceHtmlSymbol(m_ErrorMsg);
+            m_ErrorMsg = Html.fromHtml(m_ErrorMsg).toString();
             return false;
         }
 

@@ -2,15 +2,15 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '27.0.3'
     useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
         applicationId "com.panicstyle.Gongdong"
         minSdkVersion 15
-        targetSdkVersion 23
-        versionCode 26
-        versionName "3.7.0"
+        targetSdkVersion 26
+        versionCode 30
+        versionName "3.11.0"
     }
     buildTypes {
         release {
@@ -27,6 +27,12 @@ android {
         exclude 'META-INF/NOTICE.txt'
     }
 
+    lintOptions {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+    }
 }
 
 dependencies {

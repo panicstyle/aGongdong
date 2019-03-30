@@ -45,12 +45,13 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 	protected String m_strBoardId;
 	protected String m_strBoardNo;
 	protected String m_strBoardName;
+	public static int m_nType;
     private List<HashMap<String, Object>> m_arrayItems;
     private int m_nPage;
     static final int REQUEST_WRITE = 1;
     static final int REQUEST_VIEW = 2;
     protected int m_LoginStatus;
-	public static int m_nMode;
+	public static int m_nMode = 1;
 	private EfficientAdapter m_adapter;
 	private GongdongApplication m_app;
 
@@ -146,13 +147,17 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 					String comment = (String) item.get("comment");
 					String hit = (String) item.get("hit");
 					int isNew = (Integer) item.get("isNew");
+					name = "<b>" + name + "</b>&nbsp;" + date + "&nbsp;";
+					if (hit.length() > 0) {
+						name += "(" + hit + "&nbsp;읽음)";
+					}
+
 					// Bind the data efficiently with the holder.
-					name = "<b>" + name + "</b>&nbsp;" + date + "&nbsp;(" + hit + "&nbsp;읽음)";
 					holder.name.setText(Html.fromHtml(name));
 					holder.subject.setText(subject);
 					holder.comment.setText(comment);
 					if (isNew == 1) {
-						holder.iconnew.setImageResource(R.drawable.circle);
+						holder.iconnew.setImageResource(R.drawable.ic_brightness_1_red_6dp);
 					} else {
 						holder.iconnew.setImageResource(0);
 					}
@@ -187,7 +192,12 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 					String hit = (String) item.get("hit");
 					String date = "";
 
-					name = "<b>" + name + "</b>&nbsp;" + date + "&nbsp;(" + hit + "&nbsp;읽음)";
+					if (name.length() > 0) {
+						name = "<b>" + name + "</b>&nbsp;" + date + "&nbsp;";
+					}
+					if (hit.length() > 0) {
+						name += "(" + hit + "&nbsp;읽음)";
+					}
 					holder.name.setText(Html.fromHtml(name));
 					holder.subject.setText(subject);
 					holder.comment.setText(comment);
@@ -243,33 +253,15 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 					item = m_arrayItems.get(position);
 					Intent intent = new Intent(ItemsActivity.this, ArticleViewActivity.class);
 
-					if (m_nMode == 1) {
-						intent.putExtra("isPNotice", (Integer) item.get("isPNotice"));
-						intent.putExtra("isNotice", (Integer) item.get("isNotice"));
-						intent.putExtra("mode", (Integer) m_nMode);
-						intent.putExtra("boardTitle", (String) item.get("subject"));
-						intent.putExtra("date", (String) item.get("date"));
-						intent.putExtra("userName", (String) item.get("name"));
-						intent.putExtra("userId", (String) item.get("id"));
-//						intent.putExtra("LINK", (String) item.get("link"));
-						intent.putExtra("hit", (String) item.get("hit"));
-						intent.putExtra("commId", (String) item.get("commId"));
-						intent.putExtra("boardId", (String) item.get("boardId"));
-						intent.putExtra("boardNo", (String) item.get("boardNo"));
+					if ((Integer)item.get("isPNotice") == 1) {
+						intent.putExtra("PNotice", "pnotice");
 					} else {
-						intent.putExtra("isPNotice", 0);
-						intent.putExtra("isNotice", 0);
-						intent.putExtra("mode", (Integer) m_nMode);
-						intent.putExtra("boardTitle", (String) item.get("subject"));
-						intent.putExtra("date", "");
-						intent.putExtra("userName", (String) item.get("name"));
-						intent.putExtra("userId", "");
-//						intent.putExtra("LINK", (String) item.get("link"));
-						intent.putExtra("hit", (String) item.get("hit"));
-						intent.putExtra("commId", (String) item.get("commId"));
-						intent.putExtra("boardId", (String) item.get("boardId"));
-						intent.putExtra("boardNo", (String) item.get("boardNo"));
+						intent.putExtra("PNotice", "cafe");
 					}
+					intent.putExtra("commId", (String) item.get("commId"));
+					intent.putExtra("boardId", (String) item.get("boardId"));
+					intent.putExtra("boardNo", (String) item.get("boardNo"));
+
 					startActivityForResult(intent, REQUEST_VIEW);
 				}
 			}
@@ -309,7 +301,9 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
     		if (m_LoginStatus > 0) {
     			if (getData()) {
     				m_LoginStatus = 1;
-    			}
+    			} else {
+					m_LoginStatus = -2;
+				}
     		}
     	} else {
 			m_LoginStatus = 1;
@@ -337,6 +331,13 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			ab.setPositiveButton(android.R.string.ok, null);
 			ab.setTitle( "로그인 오류" );
 			ab.show();
+		} else if (m_LoginStatus == -2) {
+			AlertDialog.Builder ab = null;
+			ab = new AlertDialog.Builder(this);
+			ab.setMessage("게시판을 볼 권한이 없습니다.");
+			ab.setPositiveButton(android.R.string.ok, null);
+			ab.setTitle("권한 오류");
+			ab.show();
 		} else if (m_LoginStatus == 0){
 			AlertDialog.Builder ab = null;
 			ab = new AlertDialog.Builder( ItemsActivity.this );
@@ -362,19 +363,311 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		m_strCommId = extras.getString("commId");
 		m_strBoardId = extras.getString("boardId");
 		m_strBoardName = extras.getString("boardName");
+		m_nType = extras.getInt("type");
 //		m_itemsLink = extras.getString("ITEMS_LINK");
 
 //		m_CommID = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", m_itemsLink);
 //		m_BoardID = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=$)", m_itemsLink);
 	}
 
-    protected boolean getData() {
+	protected boolean getData() {
+		if (m_nType == GlobalConst.CAFE_SUB_MENU_NORMAL) {
+			return getDataCommunity();
+		} else if (m_nType == GlobalConst.BOARD_TYPE_NOTICE) {
+			return getDataNotice();
+		} else if (m_nType == GlobalConst.BOARD_TYPE_CENTER) {
+			return getDataCenter();
+		} else if (m_nType == GlobalConst.BOARD_TYPE_ING) {
+			return getDataIng();
+		} else if (m_nType == GlobalConst.BOARD_TYPE_APPLY) {
+			return getDataCenter();
+		}
+		return true;
+	}
+
+	protected boolean getDataNotice() {
+    	m_nMode = 1;
+
+		String url = "http://www.gongdong.or.kr/bbs/board.php?bo_table=" + m_strBoardId + "&page=" + Integer.toString(m_nPage);
+		String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
+
+		if (result.indexOf("window.alert(\"권한이 없습니다") > 0 || result.indexOf("window.alert(\"로그인 하세요") > 0 ) {
+			return false;
+		}
+		// 각 항목 찾기
+		HashMap<String, Object> item;
+
+		// img 가 data로 들어온 경우 정규식으로 찾지 못하는 문제. 해당 부분을 미리 삭제해야 함.
+		// 아래 코드도 역시 오류 발생
+		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
+		result = removeImgData(result);
+
+		Matcher m = Utils.getMatcher("(<tr class=)(.|\\n)*?(</tr>)", result);
+		while (m.find()) { // Find each match in turn; String can't do this.
+			item = new HashMap<String, Object>();
+			String matchstr = m.group(0);
+			int isNoti = 0;
+
+			// find [공지]
+			item.put("isPNotice", 1);
+
+			// find [공지]
+			if (matchstr.contains("<tr class=\"bo_notice")) {
+				item.put("isNotice", 1);
+				isNoti = 1;
+			} else {
+				item.put("isNotice", 0);
+			}
+
+			// comment 삭제
+			matchstr.replaceAll("(<!--)(.|\\n)*?(-->)", "");
+
+			// subject
+			String strSubject;
+			strSubject = Utils.getMatcherFirstString("(<td class=\\\"td_subject)(.|\\n)*?(</a>)", matchstr);
+
+			// link
+			String strLink = Utils.getMatcherFirstString("(?<=<a href=\\\")(.|\\n)*?(?=\\\")", strSubject);
+			String boardId = Utils.getMatcherFirstString("(?<=bo_table=)(.|\\n)*?(?=[&|$])", strLink);
+			String boardNo = Utils.getMatcherFirstString("(?<=wr_id=)(.|\\n)*?(?=(&|$))", strLink);
+			item.put("commId", "center");
+			item.put("boardId", boardId);
+			item.put("boardNo", boardNo);
+
+			// comment
+			String strComment = Utils.getMatcherFirstString("(?<=<span class=\\\"cnt_cmt\\\">)(.|\\n)*?(?=</span>)", strSubject);
+			item.put("comment", strComment);
+
+			strSubject = strSubject.replaceAll("(<span class=\\\"sound)(.|\\n)*?(개</span>)", "");
+			strSubject = Utils.repalceHtmlSymbol(strSubject);
+			strSubject = Html.fromHtml(strSubject).toString();
+			item.put("subject", strSubject);
+
+			item.put("isNew", 0);
+
+			item.put("isReply", 0);
+
+			item.put("name", "");
+			item.put("id", "");
+
+			// date
+			String strDate = Utils.getMatcherFirstString("(?<=<td class=\\\"td_date\\\">)(.|\\n)*?(?=</td>)", matchstr);
+			item.put("date", strDate);
+
+			// 조회수
+			String strHit = Utils.getMatcherFirstString("(?<=<td class=\\\"td_num\\\">)[0-9.]+(?=</td>)", matchstr);
+			item.put("hit", strHit);
+
+			m_arrayItems.add( item );
+		}
+
+		return true;
+	}
+
+	protected boolean getDataCenter() {
+		m_nMode = 1;
+
+		String url = "";
+		if (m_nType == GlobalConst.BOARD_TYPE_APPLY) {
+			url = "http://www.gongdong.or.kr/bbs/board.php?bo_table=B691&sca=" + m_strBoardId + "&page=" + Integer.toString(m_nPage);
+		} else {
+			url = "http://www.gongdong.or.kr/bbs/board.php?bo_table=" + m_strBoardId + "&page=" + Integer.toString(m_nPage);
+		}
+		String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
+
+		if (result.indexOf("window.alert(\"권한이 없습니다") > 0 || result.indexOf("window.alert(\"로그인 하세요") > 0 ) {
+			return false;
+		}
+		// 각 항목 찾기
+		HashMap<String, Object> item;
+
+		// img 가 data로 들어온 경우 정규식으로 찾지 못하는 문제. 해당 부분을 미리 삭제해야 함.
+		// 아래 코드도 역시 오류 발생
+		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
+		result = removeImgData(result);
+
+		Matcher m = Utils.getMatcher("(<tr class=)(.|\\n)*?(</tr>)", result);
+		while (m.find()) { // Find each match in turn; String can't do this.
+			item = new HashMap<String, Object>();
+			String matchstr = m.group(0);
+			int isNoti = 0;
+
+			// find [공지]
+			item.put("isPNotice", 1);
+
+			// find [공지]
+			if (matchstr.contains("<tr class=\"bo_notice")) {
+				item.put("isNotice", 1);
+				isNoti = 1;
+			} else {
+				item.put("isNotice", 0);
+			}
+
+			// comment 삭제
+			matchstr = matchstr.replaceAll("(<!--)(.|\\n)*?(-->)", "");
+
+			// 신청의 경우  <a> 태그가 두개 있는제 앞에 있는 그룹명을 지운다.
+			matchstr = matchstr.replaceAll("(<a href=).*?(class=\\\"bo_cate_link\\\">.*?</a>)", "");
+
+			// subject
+			String strSubject;
+			strSubject = Utils.getMatcherFirstString("(<td class=\\\"td_subject)(.|\\n)*?(</a>)", matchstr);
+
+			// link
+			String strLink = Utils.getMatcherFirstString("(?<=<a href=\\\")(.|\\n)*?(?=\\\")", strSubject);
+			String boardId = Utils.getMatcherFirstString("(?<=bo_table=)(.|\\n)*?(?=[&|$])", strLink);
+			String boardNo = Utils.getMatcherFirstString("(?<=wr_id=)(.|\\n)*?(?=(&|$))", strLink);
+			item.put("commId", "center");
+			item.put("boardId", boardId);
+			item.put("boardNo", boardNo);
+
+			// comment
+			String strComment = Utils.getMatcherFirstString("(?<=<span class=\\\"cnt_cmt\\\">)(.|\\n)*?(?=</span>)", strSubject);
+			item.put("comment", strComment);
+
+			String strStatus = "";
+			if (m_nType == GlobalConst.BOARD_TYPE_APPLY) {
+				if (matchstr.indexOf("<div class=\"edu_con\">") > 0) {
+					strStatus = "[접수중]";
+				} else {
+					strStatus = "[신청마감]";
+				}
+			} else {
+				if (matchstr.indexOf("recruitment2.png") > 0 || matchstr.indexOf("recruitment.gif") > 0) {
+					strStatus = "[모집중]";
+				} else if (matchstr.indexOf("rcrit_end.gif") > 0) {
+					strStatus = "[완료]";
+				} else {
+					strStatus = "";
+				}
+			}
+
+			strSubject = strSubject.replaceAll("(<span class=\\\"sound)(.|\\n)*?(개</span>)", "");
+			strSubject = Utils.repalceHtmlSymbol(strSubject);
+			strSubject = Html.fromHtml(strSubject).toString();
+
+			if (!strStatus.equals("")) {
+				strSubject = strStatus + " " + strSubject;
+			}
+			item.put("subject", strSubject);
+
+			item.put("isNew", 0);
+
+			if (matchstr.indexOf("icon_reply.gif") > 0) {
+				item.put("isReply", 1);
+			} else {
+				item.put("isReply", 0);
+			}
+
+			if (m_nType == GlobalConst.BOARD_TYPE_NOTICE) {
+				if (isNoti == 1) {
+					item.put("name", "[공지]");
+					item.put("id", "[공지]");
+				} else if (isNoti == 2) {
+					item.put("name", "[법인공지]");
+					item.put("id", "[법인공지]");
+				}
+				// date
+				String strDate = Utils.getMatcherFirstString("(?<=<td class=\\\"td_date\\\">)(.|\\n)*?(?=</td>)", matchstr);
+				item.put("date", strDate);
+			} else if (m_nType == GlobalConst.BOARD_TYPE_APPLY) {
+				item.put("name", "");
+				item.put("id", "");
+				// date
+				String strDate = Utils.getMatcherFirstString("(?<=<td class=\\\"td_name \\\">)(.|\\n)*?(?=</td>)", matchstr);
+				item.put("date", strDate);
+
+			} else {
+				// name
+				String strName = Utils.getMatcherFirstString("(?<=<td class=\\\"td_name sv_use\\\">)(.|\\n)*?(?=</td>)", matchstr);
+				strName = strName.replaceAll("<((.|\\n)*?)+>", "");
+				item.put("name", strName);
+				// date
+				String strDate = Utils.getMatcherFirstString("(?<=<td class=\\\"td_date\\\">)(.|\\n)*?(?=</td>)", matchstr);
+				item.put("date", strDate);
+			}
+
+			// 조회수
+			String strHit = Utils.getMatcherFirstString("(?<=<td class=\\\"td_num\\\">)[0-9.]+(?=</td>)", matchstr);
+			item.put("hit", strHit);
+
+			m_arrayItems.add( item );
+		}
+
+		return true;
+	}
+
+	protected boolean getDataIng() {
+		m_nMode = 0;
+
+		String url = "http://www.gongdong.or.kr/bbs/board.php?bo_table=" + m_strBoardId + "&page=" + Integer.toString(m_nPage);
+		String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
+
+		if (result.indexOf("window.alert(\"권한이 없습니다") > 0 || result.indexOf("window.alert(\"로그인 하세요") > 0 ) {
+			return false;
+		}
+		// 각 항목 찾기
+		HashMap<String, Object> item;
+
+		// img 가 data로 들어온 경우 정규식으로 찾지 못하는 문제. 해당 부분을 미리 삭제해야 함.
+		// 아래 코드도 역시 오류 발생
+		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
+		result = removeImgData(result);
+
+		Matcher m = Utils.getMatcher("(<ul class=\\\"gall_con)(.|\\n)*?(</ul>)", result);
+		while (m.find()) { // Find each match in turn; String can't do this.
+			item = new HashMap<String, Object>();
+			String matchstr = m.group(0);
+
+			// find [공지]
+			item.put("isPNotice", 1);
+			item.put("isNotice", 0);
+
+			// picLink
+			String strPicLink = Utils.getMatcherFirstString("(?<=<img src=\\\")(.|\\n)*?(?=\\\")", matchstr);
+			item.put("piclink", strPicLink);
+
+			// subject
+			String strSubject;
+			strSubject = Utils.getMatcherFirstString("(<li class=\\\"gall_text_href)(.|\\n)*?(</a>)", matchstr);
+
+			// link
+			String boardId = Utils.getMatcherFirstString("(?<=bo_table=)(.|\\n)*?(?=&)", strSubject);
+			String boardNo = Utils.getMatcherFirstString("(?<=wr_id=)(.|\\n)*?(?=[&|\\\"])", strSubject);
+			item.put("commId", "center");
+			item.put("boardId", boardId);
+			item.put("boardNo", boardNo);
+
+			// comment
+			String strComment = Utils.getMatcherFirstString("(?<=<span class=\\\"cnt_cmt\\\">)(.|\\n)*?(?=</span>)", strSubject);
+			item.put("comment", strComment);
+
+			strSubject = strSubject.replaceAll("(<span class=\\\"sound)(.|\\n)*?(</span>)", "");
+			strSubject = Utils.repalceHtmlSymbol(strSubject);
+			strSubject = Html.fromHtml(strSubject).toString();
+
+			item.put("subject", strSubject);
+
+			item.put("isNew", 0);
+			item.put("isReply", 0);
+			item.put("name", "");
+			item.put("id", "");
+			item.put("date", "");
+			item.put("hit", "");
+
+			m_arrayItems.add( item );
+		}
+
+		return true;
+	}
+
+	protected boolean getDataCommunity() {
 		String Page = Integer.toString(m_nPage);
 //		http://cafe.gongdong.or.kr/cafe.php?p1=menbal&sort=35
 		String url = "http://cafe.gongdong.or.kr/cafe.php?p1=" + m_strCommId + "&sort=" + m_strBoardId + "&page=" + Page;
         String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
 
-        if (result.length() < 200) {
+        if (result.indexOf("window.alert(\"권한이 없습니다") > 0 || result.indexOf("window.alert(\"로그인 하세요") > 0 ) {
         	return false;
         }
 
@@ -388,9 +681,39 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		}
 	}
 
+	protected String removeImgData(String src) {
+    	String in = src;
+    	String out = src;
+    	int i = 0;
+    	int j = 0;
+    	int k = 0;
+
+    	String find1 = "<img src='data:image";
+    	String find2 = "/>";
+
+    	while (true) {
+			i = in.indexOf(find1);
+			if (i < 0) break;
+			if (k > 20) break;
+			j = in.indexOf(find2, i + find1.length());
+
+			out = in.substring(0, i);
+			out += in.substring(j + find2.length(), in.length());
+			in = out;
+			k++;
+		}
+
+    	return out;
+	}
+
 	protected boolean getDataNormalMode(String result) {
         // 각 항목 찾기
         HashMap<String, Object> item;
+
+        // img 가 data로 들어온 경우 정규식으로 찾지 못하는 문제. 해당 부분을 미리 삭제해야 함.
+		// 아래 코드도 역시 오류 발생
+		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
+		result = removeImgData(result);
 
 		Matcher m = Utils.getMatcher("(id=\\\"board_list_line\\\")(.|\\n)*?(</tr>)", result);
         while (m.find()) { // Find each match in turn; String can't do this.
@@ -418,6 +741,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 	        String strSubject;
 			strSubject = Utils.getMatcherFirstString("(<td class=\"subject)(.|\\n)*?(</a>)", matchstr);
 			strSubject = Utils.repalceHtmlSymbol(strSubject);
+			strSubject = Html.fromHtml(strSubject).toString();
             item.put("subject", strSubject);
 
 	        // link
@@ -504,9 +828,14 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			item = new HashMap<>();
 			String matchstr = items[i];
 
+			// find [공지]
+			item.put("isPNotice", 0);
+			item.put("isNotice", 0);
+
 			// subject
 			String strSubject = Utils.getMatcherFirstString("(<span style=\\\"font-size:9pt;\\\">)(.|\\n)*?(</span>)", matchstr);
 			strSubject = Utils.repalceHtmlSymbol(strSubject);
+			strSubject = Html.fromHtml(strSubject).toString();
 			item.put("subject", strSubject);
 
 			// link
@@ -526,7 +855,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			item.put("comment", strComment);
 
 			// name
-			String strName = Utils.getMatcherFirstString("(?<=</span></a> \\[)(.|\\n)*?(?=\\]<span)", matchstr);
+			String strName = Utils.getMatcherFirstString("(?<=</span></a>.\\[)(.|\\n)*?(?=\\]<span)", matchstr);
 			if (strName.equalsIgnoreCase("")) {
 				strName = Utils.getMatcherFirstString("(?<=</span>\\[)(.|\\n)*?(?=\\]<span)", matchstr);
 			}
@@ -535,16 +864,15 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			item.put("name", strName);
 
 			// 조회수
-			String strHit = Utils.getMatcherFirstString("(?<=<font face=\"Tahoma\"><b>\\[)(.|\\n)*?(?=\\]</b>)", matchstr);
-			strHit = strHit.replaceAll("<((.|\\n)*?)+>", "");
-			strHit = strHit.replaceAll("&nbsp;", "");
-			strHit = strHit.trim();
+			String strHit = Utils.getMatcherFirstString("(?<=<font face=\"Tahoma\">\\()(.|\\n)*?(?=\\)..</div>)", matchstr);
 			item.put("hit", strHit);
 
 			// 조회수
 			String strPicLink = Utils.getMatcherFirstString("(?<=background=\\\")(.|\\n)*?(?=\\\")", matchstr);
 			strPicLink = strPicLink.trim();
 			item.put("piclink", strPicLink);
+			item.put("date", "");
+			item.put("userid", "");
 
 			m_arrayItems.add( item );
 		}
@@ -555,7 +883,9 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.menu_items, menu);
+		if (m_nType == GlobalConst.CAFE_SUB_MENU_NORMAL) {
+			inflater.inflate(R.menu.menu_items, menu);
+		}
 
 		return super.onCreateOptionsMenu(menu);
 	}
