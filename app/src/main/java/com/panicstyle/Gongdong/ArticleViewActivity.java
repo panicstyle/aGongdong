@@ -24,6 +24,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -124,6 +125,20 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
         m_arrayItems = new ArrayList<>();
         m_arrayAttach = new ArrayList<>();
+
+        webContent = (WebView) findViewById(R.id.webView);
+
+        webContent.setWebViewClient(new myWebClient());
+
+        webContent.addJavascriptInterface(this, "MyApp");
+        webContent.getSettings().setJavaScriptEnabled(true);
+        webContent.setBackgroundColor(0);
+
+        webContent.clearView();
+        webContent.requestLayout();
+
+        String htmlData = "<h3 align='center'>Loading....</h3>";
+        webContent.loadData(htmlData, "text/html", "utf-8");
 
         m_nThreadMode = 1;
         LoadData("로딩중");
@@ -256,15 +271,8 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
             tvHit = (TextView) findViewById(R.id.hit);
             tvHit.setText(m_strHit);
 
-            webContent = (WebView) findViewById(R.id.webView);
-
-            webContent.setWebViewClient(new myWebClient());
-
-            webContent.addJavascriptInterface(this, "MyApp");
-            webContent.getSettings().setJavaScriptEnabled(true);
-            webContent.setBackgroundColor(0);
-
-            webContent.setBackgroundColor(0);
+            webContent.clearView();
+            webContent.requestLayout();
             webContent.loadDataWithBaseURL("http://cafe.gongdong.or.kr", m_strHTML, "text/html", "utf-8", "");
 
             tvProfile = (TextView) findViewById(R.id.profile);

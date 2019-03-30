@@ -157,7 +157,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 					holder.subject.setText(subject);
 					holder.comment.setText(comment);
 					if (isNew == 1) {
-						holder.iconnew.setImageResource(R.drawable.circle);
+						holder.iconnew.setImageResource(R.drawable.ic_brightness_1_red_6dp);
 					} else {
 						holder.iconnew.setImageResource(0);
 					}
@@ -301,7 +301,9 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
     		if (m_LoginStatus > 0) {
     			if (getData()) {
     				m_LoginStatus = 1;
-    			}
+    			} else {
+					m_LoginStatus = -2;
+				}
     		}
     	} else {
 			m_LoginStatus = 1;
@@ -328,6 +330,13 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			ab.setMessage( "로그인 정보가 설정되지 않았습니다. 설정 메뉴를 통해 로그인 정보를 설정하십시오.");
 			ab.setPositiveButton(android.R.string.ok, null);
 			ab.setTitle( "로그인 오류" );
+			ab.show();
+		} else if (m_LoginStatus == -2) {
+			AlertDialog.Builder ab = null;
+			ab = new AlertDialog.Builder(this);
+			ab.setMessage("게시판을 볼 권한이 없습니다.");
+			ab.setPositiveButton(android.R.string.ok, null);
+			ab.setTitle("권한 오류");
 			ab.show();
 		} else if (m_LoginStatus == 0){
 			AlertDialog.Builder ab = null;

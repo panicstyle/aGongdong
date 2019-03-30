@@ -74,11 +74,11 @@ public class BoardActivity extends AppCompatActivity implements Runnable {
                 convertView = mInflater.inflate(R.layout.list_item_boardview, null);
                 holder = new ViewHolder();
                 holder.title = (TextView) convertView.findViewById(R.id.title);
-                holder.icon = (ImageView) convertView.findViewById(R.id.icon);
+                holder.icon = (ImageView) convertView.findViewById(R.id.iconnew);
                 convertView.setTag(holder);
                 holder.title.setText(title);
                 if (isNew == 1) {
-                    holder.icon.setImageResource(R.drawable.circle);
+                    holder.icon.setImageResource(R.drawable.ic_brightness_1_red_6dp);
                 } else {
                     holder.icon.setImageResource(0);
                 }
