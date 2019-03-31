@@ -59,14 +59,6 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     private boolean m_bDeleteStatus;
     private String m_strErrorMsg;
 
-    static final int REQUEST_WRITE = 1;
-    static final int REQUEST_MODIFY = 2;
-    static final int REQUEST_COMMENT_WRITE = 3;
-    static final int REQUEST_COMMENT_MODIFY = 4;
-    static final int REQUEST_COMMENT_REPLY_VIEW = 5;
-    static final int REQUEST_COMMENT_MODIFY_VIEW = 6;
-    static final int REQUEST_COMMENT_DELETE_VIEW = 7;
-
     private String m_strCommId;
     private String m_strBoardId;
     private String m_strBoardNo;
@@ -319,6 +311,17 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
                 ll.addView(view);
             }
+
+            // DB에 해당 글 번호를 저장한다.
+            final DBHelper db = new DBHelper(this);
+            ArticleRead read = new ArticleRead(m_strBoardNo, m_strBoardId);
+            db.add(read);
+
+            if (getParent() == null) {
+                setResult(RESULT_OK, new Intent());
+            } else {
+                getParent().setResult(RESULT_OK, new Intent());
+            }
 		}
     }
 
@@ -435,6 +438,9 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         m_strTitle = Utils.getMatcherFirstString("(<!-- 제목 부분 -->)(.|\\n)*?(</td>)", result);
         m_strTitle = Utils.repalceHtmlSymbol(m_strTitle);
         m_strTitle = Html.fromHtml(m_strTitle).toString();
+        m_strName = Utils.getMatcherFirstString("(?<=<div align=\\\"right\\\"><b>작성자 : )(.|\\n)*?(?=</a>)", result);
+        m_strName = Utils.repalceTag(m_strName);
+        m_strDate = Utils.getMatcherFirstString("(?<=-->입력 : <span title=\\\")(.|\\n)*?(?=\\\">)", result);
         m_strHit = Utils.getMatcherFirstString("(?<=</span>, &nbsp;조회 : )(.|\\n)*?(?=</div>)", result);
         m_strBoardContent = Utils.getMatcherFirstString("(?<=<!---- contents start 본문 표시 부분 DJ ---->)(.|\\n)*?(?=<!---- contents end ---->)", result);
         String strImage = Utils.getMatcherFirstString("(<p align=center><img onload=\\\"resizeImage2[(]this[)]\\\")(.|\\n)*?(</td>)", result);
@@ -688,7 +694,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         intent.putExtra("boardNo", m_strBoardNo);
         intent.putExtra("boardTitle", "");
         intent.putExtra("boardContent", "");
-        startActivityForResult(intent, REQUEST_WRITE);
+        startActivityForResult(intent, GlobalConst.REQUEST_WRITE);
     }
 
     public void modifyArticle() {
@@ -699,7 +705,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         intent.putExtra("boardNo", m_strBoardNo);
         intent.putExtra("boardTitle", m_strTitle);
         intent.putExtra("boardContent", m_strBoardContent);
-        startActivityForResult(intent, REQUEST_MODIFY);
+        startActivityForResult(intent, GlobalConst.REQUEST_MODIFY);
     }
 
     public void addComment() {
@@ -711,7 +717,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         intent.putExtra("boardNo", m_strBoardNo);
         intent.putExtra("commentNo", "");
         intent.putExtra("comment", "");
-        startActivityForResult(intent, REQUEST_COMMENT_WRITE);
+        startActivityForResult(intent, GlobalConst.REQUEST_COMMENT_WRITE);
     }
 
     protected void DeleteArticleConfirm() {
@@ -798,7 +804,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         intent.putExtra("boardNo", m_strBoardNo);
         intent.putExtra("commentNo", m_strCommentNo);
         intent.putExtra("comment",  "");
-        startActivityForResult(intent, REQUEST_COMMENT_WRITE);
+        startActivityForResult(intent, GlobalConst.REQUEST_COMMENT_WRITE);
     }
 
 
@@ -811,7 +817,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         intent.putExtra("boardNo",  m_strBoardNo);
         intent.putExtra("commentNo",  m_strCommentNo);
         intent.putExtra("comment",  m_strComment);
-        startActivityForResult(intent, REQUEST_COMMENT_MODIFY);
+        startActivityForResult(intent, GlobalConst.REQUEST_COMMENT_MODIFY);
     }
 
     protected void DeleteCommentConfirm() {
@@ -871,25 +877,25 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
     	super.onActivityResult(requestCode, resultCode, intent);
-    	switch(requestCode) {
-            case REQUEST_MODIFY:
-            case REQUEST_COMMENT_WRITE:
-            case REQUEST_COMMENT_MODIFY:
-                if (resultCode == RESULT_OK) {
+        if (resultCode == RESULT_OK) {
+            switch(requestCode) {
+                case GlobalConst.REQUEST_MODIFY:
+                case GlobalConst.REQUEST_COMMENT_WRITE:
+                case GlobalConst.REQUEST_COMMENT_MODIFY:
                     m_nThreadMode = 1;
                     LoadData("로딩중");
-                }
-                break;
-            case REQUEST_WRITE:
-                if (getParent() == null) {
-                    setResult(Activity.RESULT_OK, new Intent());
-                } else {
-                    getParent().setResult(Activity.RESULT_OK, new Intent());
-                }
-                finish();
-                break;
-            default:
-                break;
+                    break;
+                case GlobalConst.REQUEST_WRITE:
+                    if (getParent() == null) {
+                        setResult(Activity.RESULT_OK, new Intent());
+                    } else {
+                        getParent().setResult(Activity.RESULT_OK, new Intent());
+                    }
+                    finish();
+                    break;
+                default:
+                    break;
+            }
     	}
     }
 }

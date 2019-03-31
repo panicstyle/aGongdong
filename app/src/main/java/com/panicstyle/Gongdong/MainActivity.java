@@ -11,8 +11,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
@@ -30,11 +32,15 @@ import java.util.regex.Matcher;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
 public class MainActivity extends AppCompatActivity implements Runnable {
+    private static final String TAG = "MainActivity";
     private ListView m_listView;
-
     private ProgressDialog m_pd;
     private int m_LoginStatus;
     static final int SETUP_CODE = 1234;
@@ -129,6 +135,12 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        MobileAds.initialize(this, getString(R.string.app_id));
+
+        // DB Create
+        final DBHelper db = new DBHelper(this);
+        db.delete();
+
         m_listView = (ListView) findViewById(R.id.listView);
         m_arrayItems = new ArrayList<HashMap<String, Object>>();
 
@@ -156,9 +168,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
 
         m_app = (GongdongApplication)getApplication();
 
-        //        FirebaseMessaging.getInstance().subscribeToTopic("news");
-        m_app.m_strRegId = FirebaseInstanceId.getInstance().getToken();
-        System.out.println("RegID = " + m_app.m_strRegId);
+        GetToken();
 
         SetInfo setInfo = new SetInfo();
 
@@ -202,6 +212,26 @@ public class MainActivity extends AppCompatActivity implements Runnable {
 
         Thread thread = new Thread(this);
         thread.start();
+    }
+
+    private void GetToken() {
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful()) {
+                            Log.w(TAG, "getInstanceId failed", task.getException());
+                            return;
+                        }
+                        // Get new Instance ID token
+                        String token = task.getResult().getToken();
+
+                        Log.d(TAG, "Refreshed token: " + token);
+
+                        GongdongApplication app = (GongdongApplication)getApplication();
+                        app.m_strRegId = token;
+                    }
+                });
     }
 
     public void run() {
@@ -375,15 +405,15 @@ public class MainActivity extends AppCompatActivity implements Runnable {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-        switch(requestCode) {
-            case SETUP_CODE:
-                if (resultCode == RESULT_OK) {
-                    m_arrayItems.clear();
-                    m_pd = ProgressDialog.show(this, "", "로딩중입니다. 잠시만 기다리십시오...", true, false);
+        if (resultCode == RESULT_OK) {
+            switch(requestCode) {
+                case SETUP_CODE:
+                        m_arrayItems.clear();
+                        m_pd = ProgressDialog.show(this, "", "로딩중입니다. 잠시만 기다리십시오...", true, false);
 
-                    Thread thread = new Thread(this);
-                    thread.start();
-                }
+                        Thread thread = new Thread(this);
+                        thread.start();
+            }
         }
     }
 }
