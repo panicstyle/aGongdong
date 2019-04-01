@@ -5,8 +5,6 @@
     android:layout_height="match_parent"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
     tools:context=".ItemsActivity">
 
     <ListView
@@ -21,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_alignParentBottom="true"
-        ads:adUnitId="ca-app-pub-9032980304073628/6557127592"
+        ads:adUnitId="@string/app_unit_id"
         ads:adSize="BANNER"
         />
 </LinearLayout>

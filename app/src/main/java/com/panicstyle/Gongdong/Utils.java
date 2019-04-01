@@ -61,4 +61,13 @@ public class Utils {
 
         return strDest;
     }
+
+    public static String repalceTag(String strSrc) {
+        String strDest = strSrc;
+        strDest=strDest.replaceAll("(<)(.|\\n)*?(>)","");
+
+        strDest=strDest.trim();
+
+        return strDest;
+    }
 }

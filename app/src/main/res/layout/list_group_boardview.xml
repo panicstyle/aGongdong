@@ -20,11 +20,14 @@
     android:layout_height="match_parent">
 
     <TextView android:id="@+id/title"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
         android:layout_width="fill_parent"
-        android:layout_height="20dip"
+        android:layout_height="25dip"
         android:textSize = "15sp"
         android:gravity = "left|center_vertical"
-        android:background = "#EEEEEE"        
+        android:background = "@color/colorPrimary"
+        android:textColor="#FFFFFF"
         android:drawSelectorOnTop="false" >         
     </TextView>
 </LinearLayout>

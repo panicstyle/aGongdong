@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -48,12 +49,11 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 	public static int m_nType;
     private List<HashMap<String, Object>> m_arrayItems;
     private int m_nPage;
-    static final int REQUEST_WRITE = 1;
-    static final int REQUEST_VIEW = 2;
     protected int m_LoginStatus;
 	public static int m_nMode = 1;
 	private EfficientAdapter m_adapter;
 	private GongdongApplication m_app;
+	private int last_position = 0;
 
 	private static class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
 		ImageView bmImage;
@@ -147,6 +147,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 					String comment = (String) item.get("comment");
 					String hit = (String) item.get("hit");
 					int isNew = (Integer) item.get("isNew");
+					int isRead = (Integer) item.get("read");
 					name = "<b>" + name + "</b>&nbsp;" + date + "&nbsp;";
 					if (hit.length() > 0) {
 						name += "(" + hit + "&nbsp;읽음)";
@@ -165,6 +166,11 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 						holder.comment.setBackgroundResource(R.drawable.layout_circle);
 					} else {
 						holder.comment.setBackgroundResource(0);
+					}
+					if (isRead == 1) {
+						holder.subject.setTextColor(Color.parseColor("#AAAAAA"));
+					} else {
+						holder.subject.setTextColor(Color.parseColor("#000000"));
 					}
 
 					return convertView;
@@ -191,6 +197,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 					String strPicLink = (String) item.get("piclink");
 					String hit = (String) item.get("hit");
 					String date = "";
+					int isRead = (Integer) item.get("read");
 
 					if (name.length() > 0) {
 						name = "<b>" + name + "</b>&nbsp;" + date + "&nbsp;";
@@ -207,6 +214,11 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 
 					} else {
 						holder.comment.setBackgroundResource(0);
+					}
+					if (isRead == 1) {
+						holder.subject.setTextColor(Color.parseColor("#AAAAAA"));
+					} else {
+						holder.subject.setTextColor(Color.parseColor("#000000"));
 					}
 					new DownloadImageTask(holder.thumnail).execute(strPicLink);
 
@@ -249,6 +261,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 					Thread thread = new Thread(ItemsActivity.this);
 					thread.start();
 				} else {
+					last_position = position;
 					HashMap<String, Object> item;
 					item = m_arrayItems.get(position);
 					Intent intent = new Intent(ItemsActivity.this, ArticleViewActivity.class);
@@ -262,7 +275,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 					intent.putExtra("boardId", (String) item.get("boardId"));
 					intent.putExtra("boardNo", (String) item.get("boardNo"));
 
-					startActivityForResult(intent, REQUEST_VIEW);
+					startActivityForResult(intent, GlobalConst.REQUEST_VIEW);
 				}
 			}
 		});
@@ -402,6 +415,9 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
 		result = removeImgData(result);
 
+		// DB에 해당 글 번호를 확인한다.
+		final DBHelper db = new DBHelper(this);
+
 		Matcher m = Utils.getMatcher("(<tr class=)(.|\\n)*?(</tr>)", result);
 		while (m.find()) { // Find each match in turn; String can't do this.
 			item = new HashMap<String, Object>();
@@ -458,6 +474,12 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			String strHit = Utils.getMatcherFirstString("(?<=<td class=\\\"td_num\\\">)[0-9.]+(?=</td>)", matchstr);
 			item.put("hit", strHit);
 
+			if (db.exist(boardNo)) {
+				item.put("read", 1);
+			} else {
+				item.put("read", 0);
+			}
+
 			m_arrayItems.add( item );
 		}
 
@@ -485,6 +507,9 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		// 아래 코드도 역시 오류 발생
 		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
 		result = removeImgData(result);
+
+		// DB에 해당 글 번호를 확인한다.
+		final DBHelper db = new DBHelper(this);
 
 		Matcher m = Utils.getMatcher("(<tr class=)(.|\\n)*?(</tr>)", result);
 		while (m.find()) { // Find each match in turn; String can't do this.
@@ -591,6 +616,12 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			String strHit = Utils.getMatcherFirstString("(?<=<td class=\\\"td_num\\\">)[0-9.]+(?=</td>)", matchstr);
 			item.put("hit", strHit);
 
+			if (db.exist(boardNo)) {
+				item.put("read", 1);
+			} else {
+				item.put("read", 0);
+			}
+
 			m_arrayItems.add( item );
 		}
 
@@ -613,6 +644,9 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		// 아래 코드도 역시 오류 발생
 		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
 		result = removeImgData(result);
+
+		// DB에 해당 글 번호를 확인한다.
+		final DBHelper db = new DBHelper(this);
 
 		Matcher m = Utils.getMatcher("(<ul class=\\\"gall_con)(.|\\n)*?(</ul>)", result);
 		while (m.find()) { // Find each match in turn; String can't do this.
@@ -654,6 +688,12 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			item.put("id", "");
 			item.put("date", "");
 			item.put("hit", "");
+
+			if (db.exist(boardNo)) {
+				item.put("read", 1);
+			} else {
+				item.put("read", 0);
+			}
 
 			m_arrayItems.add( item );
 		}
@@ -715,6 +755,9 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
 		result = removeImgData(result);
 
+		// DB에 해당 글 번호를 확인한다.
+		final DBHelper db = new DBHelper(this);
+
 		Matcher m = Utils.getMatcher("(id=\\\"board_list_line\\\")(.|\\n)*?(</tr>)", result);
         while (m.find()) { // Find each match in turn; String can't do this.
             item = new HashMap<String, Object>();
@@ -746,16 +789,18 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 
 	        // link
 			String strLink = Utils.getMatcherFirstString("(?<=<a href=\\\")(.|\\n)*?(?=\\\")", matchstr);
+			String boardId;
+			String boardNo;
 			if (isNoti == 2) {
-				String boardId = Utils.getMatcherFirstString("(?<=bo_table=)(.|\\n)*?(?=&)", strLink);
-				String boardNo = Utils.getMatcherFirstString("(?<=&wr_id=)(.|\\n)*?(?=$)", strLink);
+				boardId = Utils.getMatcherFirstString("(?<=bo_table=)(.|\\n)*?(?=&)", strLink);
+				boardNo = Utils.getMatcherFirstString("(?<=&wr_id=)(.|\\n)*?(?=$)", strLink);
 				item.put("commId", "");
 				item.put("boardId", boardId);
 				item.put("boardNo", boardNo);
 			} else {
 				String commId = Utils.getMatcherFirstString("(?<=p1=)(.|\\n)*?(?=&)", strLink);
-				String boardId = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=&)", strLink);
-				String boardNo = Utils.getMatcherFirstString("(?<=number=)(.|\\n)*?(?=&)", strLink);
+				boardId = Utils.getMatcherFirstString("(?<=sort=)(.|\\n)*?(?=&)", strLink);
+				boardNo = Utils.getMatcherFirstString("(?<=number=)(.|\\n)*?(?=&)", strLink);
 				item.put("commId", commId);
 				item.put("boardId", boardId);
 				item.put("boardNo", boardNo);
@@ -812,6 +857,12 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			strHit = strHit.trim();
 			item.put("hit", strHit);
 
+			if (db.exist(boardNo)) {
+				item.put("read", 1);
+			} else {
+				item.put("read", 0);
+			}
+
             m_arrayItems.add( item );
         }
 
@@ -821,6 +872,9 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 	protected boolean getDataPictureMode(String result) {
 		// 각 항목 찾기
 		HashMap<String, Object> item;
+
+		// DB에 해당 글 번호를 확인한다.
+		final DBHelper db = new DBHelper(this);
 
 		String[] items = result.split("td width=\"25%\" valign=top>\n");
 		int i = 0;
@@ -874,6 +928,12 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			item.put("date", "");
 			item.put("userid", "");
 
+			if (db.exist(boardNo)) {
+				item.put("read", 1);
+			} else {
+				item.put("read", 0);
+			}
+
 			m_arrayItems.add( item );
 		}
 
@@ -910,30 +970,33 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 	    intent.putExtra("boardNo",  "");
 		intent.putExtra("boardTitle", "");
 		intent.putExtra("boardContent", "");
-        startActivityForResult(intent, REQUEST_WRITE);
+        startActivityForResult(intent, GlobalConst.REQUEST_WRITE);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
     	super.onActivityResult(requestCode, resultCode, intent);
-    	switch(requestCode) {
-    		case REQUEST_WRITE:
-			case REQUEST_VIEW:
-				if (resultCode == RESULT_OK) {
-					m_arrayItems.clear();
+		if (resultCode == RESULT_OK) {
+			switch(requestCode) {
+				case GlobalConst.REQUEST_WRITE:
+						m_arrayItems.clear();
+						m_adapter.notifyDataSetChanged();
+						m_nPage = 1;
+
+						m_pd = ProgressDialog.show(this, "", "로딩중", true,
+								false);
+
+						Thread thread = new Thread(this);
+						thread.start();
+					break;
+				case GlobalConst.REQUEST_VIEW:
+					HashMap<String, Object> item;
+					item = m_arrayItems.get(last_position);
+					item.put("read", 1);
+					m_arrayItems.set(last_position, item);
 					m_adapter.notifyDataSetChanged();
-					m_nPage = 1;
-
-					m_pd = ProgressDialog.show(this, "", "로딩중", true,
-							false);
-
-					Thread thread = new Thread(this);
-					thread.start();
-				}
-				break;
-			default:
-				break;
-
+					break;
+			}
     	}
     }
 }

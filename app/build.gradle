@@ -1,21 +1,20 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion '27.0.3'
-    useLibrary 'org.apache.http.legacy'
-
+    compileSdkVersion 27
     defaultConfig {
         applicationId "com.panicstyle.Gongdong"
         minSdkVersion 15
-        targetSdkVersion 26
-        versionCode 30
-        versionName "3.11.0"
+        targetSdkVersion 27
+        versionCode 32
+        versionName "3.12.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+    useLibrary 'org.apache.http.legacy'
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
@@ -26,7 +25,6 @@ android {
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE.txt'
     }
-
     lintOptions {
         checkReleaseBuilds false
         // Or, if you prefer, you can continue to check for errors in release builds,
@@ -36,15 +34,23 @@ android {
 }
 
 dependencies {
-    compile project(':caldroid')
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:design:23.1.1'
-    compile 'com.google.android.gms:play-services-ads:9.4.0'
-    compile 'com.google.firebase:firebase-messaging:9.4.0'
-    compile 'com.commit451:PhotoView:1.2.4'
-    compile 'com.github.bumptech.glide:glide:3.7.0'
+    implementation project(':caldroid')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    //noinspection GradleCompatible
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:design:27.1.1'
+    implementation 'com.android.support:support-vector-drawable:27.1.1'
+    implementation 'com.google.firebase:firebase-core:16.0.7'
+    implementation 'com.google.firebase:firebase-messaging:17.3.4'
+    implementation 'com.firebase:firebase-jobdispatcher:0.8.5'
+    implementation 'com.google.firebase:firebase-ads:17.1.3'
+    implementation 'com.github.bumptech.glide:glide:3.7.0'
+    implementation 'com.commit451:PhotoView:1.2.4'
+//    implementation group: 'commons-io', name: 'commons-io', version: '2.6'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
 
 apply plugin: 'com.google.gms.google-services'
+

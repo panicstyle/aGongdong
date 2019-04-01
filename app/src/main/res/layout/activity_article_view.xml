@@ -5,8 +5,6 @@
     android:layout_height="match_parent"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
     tools:context=".ArticleViewActivity">
 
     <ScrollView
@@ -65,7 +63,7 @@
                     android:layout_width="50dp"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
-                    android:background="@drawable/layout_circle"
+                    android:background="@drawable/layout_circle2"
                     android:gravity = "center|center_vertical"
                     android:drawSelectorOnTop="false"
                     android:textSize = "15sp"
@@ -124,7 +122,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_alignParentBottom="true"
-        ads:adUnitId="ca-app-pub-9032980304073628/8033860795"
+        ads:adUnitId="@string/app_unit_id"
         ads:adSize="BANNER"
         />
 

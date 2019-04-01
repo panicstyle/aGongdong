@@ -28,4 +28,9 @@
     <string name="show_dialog">Show Dialog</string>
     <string name="undo">Undo</string>
 
+    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+    <string name="fcm_message">FCM Message</string>
+
+    <string name="app_id">ca-app-pub-9032980304073628~8173461599</string>
+    <string name="app_unit_id">ca-app-pub-9032980304073628/6557127592</string>
 </resources>
