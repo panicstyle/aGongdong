@@ -177,34 +177,25 @@ public class MainActivity extends AppCompatActivity implements Runnable {
             m_app.m_strUserId = "";
             m_app.m_strUserPw = "";
             m_app.m_nPushYN = true;
+            m_app.m_nPushNotice = true;
         } else {
             m_app.m_strUserId = setInfo.m_userId;
             m_app.m_strUserPw = setInfo.m_userPw;
             m_app.m_nPushYN = setInfo.m_pushYN;
+            m_app.m_nPushNotice = setInfo.m_pushNotice;
         }
         System.out.println("UserID = " +  m_app.m_strUserId);
 
         if (!setInfo.CheckVersionInfo(MainActivity.this)) {
-/*
-            AlertDialog.Builder notice = null;
-            notice = new AlertDialog.Builder( MainActivity.this );
-            notice.setTitle( "버전 업데이트 알림" );
-            notice.setMessage("1.새글알림 기능이 추가되었습니다. 로그인설정에서 새글알림을 설정하시겠습니까?");
-            notice.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener(){
-                // 확인 버튼 클릭시 설정
-                public void onClick(DialogInterface dialog, int whichButton){
-                    showLoginActivity();
-                    dialog.dismiss();
-                }
-            });
-            notice.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener(){
-                // 확인 버튼 클릭시 설정
-                public void onClick(DialogInterface dialog, int whichButton){
-                    dialog.cancel();
-                }
-            });
-            notice.show();
-*/
+
+            AlertDialog.Builder ab = null;
+            ab = new AlertDialog.Builder( MainActivity.this );
+            String strErrorMsg = "어린이집 게시판과 함께 공동육아 홈페이지 새글 알림 설정이 추가되있습니다. 로그인설정에서 알림 받기를 설정해서 새글 알림을 받아보세요.";
+            ab.setMessage(strErrorMsg);
+            ab.setPositiveButton(android.R.string.ok, null);
+            ab.setTitle( "확인" );
+            ab.show();
+
             setInfo.SaveVersionInfo(MainActivity.this);
         }
 
@@ -291,7 +282,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
             return false;
         }
 
-        login.PushRegister(context, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strRegId, m_app.m_nPushYN);
+        login.PushRegister(context, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strRegId, m_app.m_nPushYN, m_app.m_nPushNotice);
 
         if (!getData()) {
             m_LoginStatus = 0;

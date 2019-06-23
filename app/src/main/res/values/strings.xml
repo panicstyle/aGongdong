@@ -8,7 +8,9 @@
     <string name="prompt_password">비밀번호</string>
     <string name="action_sign_in">로그인</string>
     <string name="action_sign_in_short">로그인</string>
-    <string name="push_yn">새글 알림 받기</string>
+    <string name="push_set">알림 설정</string>
+    <string name="push_yn">어린이집 게시판 새글 알림</string>
+    <string name="push_notice">공동육아 홈페이지 새글 알림</string>
 
     <string name="select_photo">어디에서 사진을 가져올까요?</string>
 

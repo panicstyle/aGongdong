@@ -6,8 +6,8 @@ android {
         applicationId "com.panicstyle.Gongdong"
         minSdkVersion 15
         targetSdkVersion 27
-        versionCode 32
-        versionName "3.12.0"
+        versionCode 33
+        versionName "3.13.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     useLibrary 'org.apache.http.legacy'

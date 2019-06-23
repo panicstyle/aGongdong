@@ -59,7 +59,7 @@ public class Login {
 		return 1;
 	}
 
-	public int PushRegister(Context context, HttpRequest httpRequest, String userID, String regId, boolean pushYN) {
+	public int PushRegister(Context context, HttpRequest httpRequest, String userID, String regId, boolean pushYN, boolean pushNotice) {
 
 		if (userID == null || regId == null || userID.isEmpty() || regId.isEmpty()) {
 			return 0;
@@ -75,46 +75,20 @@ public class Login {
 		} else {
 			strPushYN = "N";
 		}
-
-		try {
-			obj.put("uuid", regId);
-			obj.put("type", "Android");
-			obj.put("userid", userID);
-			obj.put("push_yn", strPushYN);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		String strBody = obj.toString();
-
-		String result = httpRequest.requestPost(url, strBody, "", "utf-8");
-
-		System.out.println("PushRegister result = " + result);
-		return 1;
-	}
-
-	public int PushRegisterUpdate(Context context, HttpRequest httpRequest, String userID, String regId, boolean pushYN) {
-
-		if (userID.isEmpty() || regId.isEmpty()) {
-			return 0;
-		}
-
-		String url = "http://www.gongdong.or.kr/push/PushRegisterUpdate";
-
-		JSONObject obj = new JSONObject();
-
-		String strPushYN = "Y";
-		if (pushYN) {
-			strPushYN = "Y";
+		String strPushNotice = "Y";
+		if (pushNotice) {
+			strPushNotice = "Y";
 		} else {
-			strPushYN = "N";
+			strPushNotice = "N";
 		}
 
 		try {
+			obj.put("ver", "2");
 			obj.put("uuid", regId);
 			obj.put("type", "Android");
 			obj.put("userid", userID);
 			obj.put("push_yn", strPushYN);
+			obj.put("push_notice", strPushNotice);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -124,7 +98,6 @@ public class Login {
 		String result = httpRequest.requestPost(url, strBody, "", "utf-8");
 
 		System.out.println("PushRegister result = " + result);
-
 		return 1;
 	}
 }
