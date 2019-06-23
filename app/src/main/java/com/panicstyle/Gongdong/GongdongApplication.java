@@ -19,6 +19,7 @@ public class GongdongApplication extends Application {
     public static String m_strUserPw = null;
     public static String m_strRegId = null;
     public static boolean m_nPushYN = false;
+    public static boolean m_nPushNotice = false;
 
     @Override
     public void onCreate() {

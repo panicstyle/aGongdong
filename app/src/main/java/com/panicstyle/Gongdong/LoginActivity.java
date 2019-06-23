@@ -37,12 +37,15 @@ public class LoginActivity extends AppCompatActivity implements Runnable {
 		String userID = m_setInfo.m_userId;
 		String userPW = m_setInfo.m_userPw;
 		boolean pushYN = m_setInfo.m_pushYN;
+		boolean pushNotice = m_setInfo.m_pushNotice;
 		EditText tID = (EditText) findViewById(R.id.id);
 		tID.setText(userID);
 		EditText tPW = (EditText) findViewById(R.id.password);
 		tPW.setText(userPW);
-		Switch switchYN = (Switch) findViewById(R.id.pusy_yn);
-		switchYN.setChecked(pushYN);
+        Switch switchYN = (Switch) findViewById(R.id.pusy_yn);
+        switchYN.setChecked(pushYN);
+        Switch switchPushNotice = (Switch) findViewById(R.id.pusy_notice);
+        switchPushNotice.setChecked(pushNotice);
 
 		findViewById(R.id.sign_in_button).setOnClickListener(mClickListener);
 	}
@@ -91,11 +94,13 @@ public class LoginActivity extends AppCompatActivity implements Runnable {
 	private void LoadData(Context context) {
 		EditText textID = (EditText) findViewById(R.id.id);
 		EditText textPW = (EditText) findViewById(R.id.password);
-		Switch switchYN = (Switch) findViewById(R.id.pusy_yn);
+        Switch switchYN = (Switch) findViewById(R.id.pusy_yn);
+        Switch switchPushNotice = (Switch) findViewById(R.id.pusy_notice);
 
 		String userId = textID.getText().toString();
 		String userPw = textPW.getText().toString();
-		boolean pushYN = switchYN.isChecked();
+        boolean pushYN = switchYN.isChecked();
+        boolean pushNotice = switchPushNotice.isChecked();
 
 		System.out.println("Login userId : " + userId);
 		System.out.println("Login userPw : " + userPw);
@@ -110,7 +115,8 @@ public class LoginActivity extends AppCompatActivity implements Runnable {
 		} else {
 			m_setInfo.m_userId = userId;
 			m_setInfo.m_userPw = userPw;
-			m_setInfo.m_pushYN = pushYN;
+            m_setInfo.m_pushYN = pushYN;
+            m_setInfo.m_pushNotice = pushNotice;
 			m_setInfo.SaveUserInfo(this);
 
 			m_LoginStatus = 1;
@@ -118,11 +124,12 @@ public class LoginActivity extends AppCompatActivity implements Runnable {
 
 		m_app.m_strUserId = m_setInfo.m_userId;
 		m_app.m_strUserPw = m_setInfo.m_userPw;
-		m_app.m_nPushYN = m_setInfo.m_pushYN;
+        m_app.m_nPushYN = m_setInfo.m_pushYN;
+        m_app.m_nPushNotice = m_setInfo.m_pushNotice;
 
 //		Toast.makeText(this, "저장합니다", Toast.LENGTH_SHORT).show();
 
-		login.PushRegisterUpdate(this, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strRegId, m_app.m_nPushYN);
+		login.PushRegister(this, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strRegId, m_app.m_nPushYN, m_app.m_nPushNotice);
 	}
 
 	Button.OnClickListener mClickListener = new View.OnClickListener() {

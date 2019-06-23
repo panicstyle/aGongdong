@@ -23,6 +23,7 @@ public class SetInfo {
     public String m_userPw;
     public String m_regId;
     public boolean m_pushYN;
+    public boolean m_pushNotice;
 
     public Boolean CheckVersionInfo(Context context) {
         String fileName = "info.json";
@@ -95,6 +96,11 @@ public class SetInfo {
             } else {
                 m_pushYN = false;
             }
+            if (obj.has("push_notice")) {
+                m_pushNotice = obj.getBoolean("push_notice");
+            } else {
+                m_pushNotice = false;
+            }
 
         } catch(FileNotFoundException e){
             Log.e("FileNotFoundException", "can't create FileInputStream");
@@ -117,6 +123,7 @@ public class SetInfo {
             obj.put("id", m_userId);
             obj.put("pw", m_userPw);
             obj.put("push_yn", m_pushYN);
+            obj.put("push_notice", m_pushNotice);
             fileos = context.openFileOutput(fileName, Context.MODE_PRIVATE);
             fileos.write(obj.toString().getBytes());
             fileos.flush();
