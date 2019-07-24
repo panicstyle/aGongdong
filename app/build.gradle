@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
     defaultConfig {
         applicationId "com.panicstyle.Gongdong"
         minSdkVersion 15
-        targetSdkVersion 27
-        versionCode 33
-        versionName "3.13.0"
+        targetSdkVersion 28
+        versionCode 37
+        versionName "3.14.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     useLibrary 'org.apache.http.legacy'

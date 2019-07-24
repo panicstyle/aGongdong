@@ -187,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         System.out.println("UserID = " +  m_app.m_strUserId);
 
         if (!setInfo.CheckVersionInfo(MainActivity.this)) {
-
+/*
             AlertDialog.Builder ab = null;
             ab = new AlertDialog.Builder( MainActivity.this );
             String strErrorMsg = "어린이집 게시판과 함께 공동육아 홈페이지 새글 알림 설정이 추가되있습니다. 로그인설정에서 알림 받기를 설정해서 새글 알림을 받아보세요.";
@@ -195,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
             ab.setPositiveButton(android.R.string.ok, null);
             ab.setTitle( "확인" );
             ab.show();
-
+*/
             setInfo.SaveVersionInfo(MainActivity.this);
         }
 
@@ -257,18 +257,8 @@ public class MainActivity extends AppCompatActivity implements Runnable {
             ab.setPositiveButton(android.R.string.ok, null);
             ab.setTitle("로그인 오류");
             ab.show();
-        } else {
-            if (m_arrayItems.size() <= 0) {
-                AlertDialog.Builder ab = null;
-                ab = new AlertDialog.Builder( MainActivity.this );
-                ab.setMessage( "\n가입된 커뮤니티가 없습니다.\n커뮤니티(어린이집) 가입여부를 확인하세요.");
-                ab.setPositiveButton(android.R.string.ok, null);
-                ab.setTitle("안내");
-                ab.show();
-            } else {
-                m_listView.setAdapter(new EfficientAdapter(MainActivity.this, m_arrayItems));
-            }
         }
+        m_listView.setAdapter(new EfficientAdapter(MainActivity.this, m_arrayItems));
     }
 
     private boolean LoadData(Context context) {
@@ -278,11 +268,9 @@ public class MainActivity extends AppCompatActivity implements Runnable {
         m_LoginStatus = login.LoginTo(context, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strUserPw);
         m_strErrorMsg = login.m_strErrorMsg;
 
-        if (m_LoginStatus <= 0) {
-            return false;
+        if (m_LoginStatus > 0) {
+            login.PushRegister(context, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strRegId, m_app.m_nPushYN, m_app.m_nPushNotice);
         }
-
-        login.PushRegister(context, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strRegId, m_app.m_nPushYN, m_app.m_nPushNotice);
 
         if (!getData()) {
             m_LoginStatus = 0;
