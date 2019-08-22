@@ -976,27 +976,33 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
     	super.onActivityResult(requestCode, resultCode, intent);
-		if (resultCode == RESULT_OK) {
-			switch(requestCode) {
-				case GlobalConst.REQUEST_WRITE:
-						m_arrayItems.clear();
-						m_adapter.notifyDataSetChanged();
-						m_nPage = 1;
+		switch(requestCode) {
+			case GlobalConst.REQUEST_WRITE:
+				if (resultCode == RESULT_OK) {
+					m_arrayItems.clear();
+					m_adapter.notifyDataSetChanged();
+					m_nPage = 1;
 
-						m_pd = ProgressDialog.show(this, "", "로딩중", true,
-								false);
+					m_pd = ProgressDialog.show(this, "", "로딩중", true,
+							false);
 
-						Thread thread = new Thread(this);
-						thread.start();
-					break;
-				case GlobalConst.REQUEST_VIEW:
+					Thread thread = new Thread(this);
+					thread.start();
+				}
+				break;
+			case GlobalConst.REQUEST_VIEW:
+				if (resultCode == RESULT_OK) {
 					HashMap<String, Object> item;
 					item = m_arrayItems.get(last_position);
 					item.put("read", 1);
 					m_arrayItems.set(last_position, item);
 					m_adapter.notifyDataSetChanged();
-					break;
-			}
-    	}
+				} else if (resultCode == GlobalConst.RESULT_DELETE_OK) {
+					HashMap<String, Object> item;
+					m_arrayItems.remove(last_position);
+					m_adapter.notifyDataSetChanged();
+				}
+				break;
+		}
     }
 }
