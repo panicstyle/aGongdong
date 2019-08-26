@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -25,6 +24,7 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -225,11 +225,37 @@ public class MainActivity extends AppCompatActivity implements Runnable {
                 });
     }
 
-    public void run() {
-        LoadData(MainActivity.this);
-        handler.sendEmptyMessage(0);
+    private static class MyHandler extends Handler {
+        private final WeakReference<MainActivity> mActivity;
+        public MyHandler(MainActivity activity) {
+            mActivity = new WeakReference<MainActivity>(activity);
+        }
+        @Override
+        public void handleMessage(Message msg) {
+            MainActivity activity = mActivity.get();
+            if (activity != null) {
+                activity.handleMessage(msg);
+            }
+        }
     }
 
+    private final MyHandler mHandler = new MyHandler(this);
+
+    public void run() {
+        LoadData(MainActivity.this);
+        mHandler.sendEmptyMessage(0);
+    }
+
+    private void handleMessage(Message msg) {
+        if (m_pd != null) {
+            if (m_pd.isShowing()) {
+                m_pd.dismiss();
+            }
+        }
+        displayData();
+    }
+
+/*
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -241,7 +267,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
             displayData();
         }
     };
-
+*/
     public void displayData() {
         if (m_LoginStatus == -1) {
             AlertDialog.Builder ab = null;

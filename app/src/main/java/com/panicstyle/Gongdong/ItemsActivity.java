@@ -30,6 +30,7 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -304,37 +305,50 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
         thread.start();
     }
 
-    public void run() {
-    	if (!getData()) {
-            // Login
+	private static class MyHandler extends Handler {
+		private final WeakReference<ItemsActivity> mActivity;
+		public MyHandler(ItemsActivity activity) {
+			mActivity = new WeakReference<ItemsActivity>(activity);
+		}
+		@Override
+		public void handleMessage(Message msg) {
+			ItemsActivity activity = mActivity.get();
+			if (activity != null) {
+				activity.handleMessage(msg);
+			}
+		}
+	}
+
+	private final MyHandler mHandler = new MyHandler(this);
+
+	public void run() {
+		if (!getData()) {
+			// Login
 			Login login = new Login();
 			m_LoginStatus = login.LoginTo(ItemsActivity.this, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strUserPw);
 			m_strErrorMsg = login.m_strErrorMsg;
 
-    		if (m_LoginStatus > 0) {
-    			if (getData()) {
-    				m_LoginStatus = 1;
-    			} else {
+			if (m_LoginStatus > 0) {
+				if (getData()) {
+					m_LoginStatus = 1;
+				} else {
 					m_LoginStatus = -2;
 				}
-    		}
-    	} else {
+			}
+		} else {
 			m_LoginStatus = 1;
-    	}
-   		handler.sendEmptyMessage(0);
-    }
+		}
+		mHandler.sendEmptyMessage(0);
+	}
 
-    private Handler handler = new Handler() {
-    	@Override
-    	public void handleMessage(Message msg) {
-            if(m_pd != null){
-                if(m_pd.isShowing()){
-                    m_pd.dismiss();
-                }
-            }
-    		displayData();
-    	}
-    };
+	private void handleMessage(Message msg) {
+		if (m_pd != null) {
+			if (m_pd.isShowing()) {
+				m_pd.dismiss();
+			}
+		}
+		displayData();
+	}
 
     public void displayData() {
 		if (m_LoginStatus == -1) {
@@ -992,15 +1006,19 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 				break;
 			case GlobalConst.REQUEST_VIEW:
 				if (resultCode == RESULT_OK) {
-					HashMap<String, Object> item;
-					item = m_arrayItems.get(last_position);
-					item.put("read", 1);
-					m_arrayItems.set(last_position, item);
-					m_adapter.notifyDataSetChanged();
+					if (m_arrayItems.size() > last_position) {
+						HashMap<String, Object> item;
+						item = m_arrayItems.get(last_position);
+						item.put("read", 1);
+						m_arrayItems.set(last_position, item);
+						m_adapter.notifyDataSetChanged();
+					}
 				} else if (resultCode == GlobalConst.RESULT_DELETE_OK) {
-					HashMap<String, Object> item;
-					m_arrayItems.remove(last_position);
-					m_adapter.notifyDataSetChanged();
+					if (m_arrayItems.size() > last_position) {
+						HashMap<String, Object> item;
+						m_arrayItems.remove(last_position);
+						m_adapter.notifyDataSetChanged();
+					}
 				}
 				break;
 		}
