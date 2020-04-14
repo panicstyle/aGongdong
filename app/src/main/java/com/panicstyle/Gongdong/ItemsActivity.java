@@ -428,6 +428,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		// 아래 코드도 역시 오류 발생
 		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
 		result = removeImgData(result);
+		result = removeImgData2(result);
 
 		// DB에 해당 글 번호를 확인한다.
 		final DBHelper db = new DBHelper(this);
@@ -521,6 +522,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		// 아래 코드도 역시 오류 발생
 		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
 		result = removeImgData(result);
+		result = removeImgData2(result);
 
 		// DB에 해당 글 번호를 확인한다.
 		final DBHelper db = new DBHelper(this);
@@ -658,6 +660,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		// 아래 코드도 역시 오류 발생
 		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
 		result = removeImgData(result);
+		result = removeImgData2(result);
 
 		// DB에 해당 글 번호를 확인한다.
 		final DBHelper db = new DBHelper(this);
@@ -736,16 +739,16 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 	}
 
 	protected String removeImgData(String src) {
-    	String in = src;
-    	String out = src;
-    	int i = 0;
-    	int j = 0;
-    	int k = 0;
+		String in = src;
+		String out = src;
+		int i = 0;
+		int j = 0;
+		int k = 0;
 
-    	String find1 = "<img src='data:image";
-    	String find2 = "/>";
+		String find1 = "<img src='data:image";
+		String find2 = "/>";
 
-    	while (true) {
+		while (true) {
 			i = in.indexOf(find1);
 			if (i < 0) break;
 			if (k > 20) break;
@@ -757,7 +760,32 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			k++;
 		}
 
-    	return out;
+		return out;
+	}
+
+	protected String removeImgData2(String src) {
+		String in = src;
+		String out = src;
+		int i = 0;
+		int j = 0;
+		int k = 0;
+
+		String find1 = "<img src=data:image";
+		String find2 = "/>";
+
+		while (true) {
+			i = in.indexOf(find1);
+			if (i < 0) break;
+			if (k > 20) break;
+			j = in.indexOf(find2, i + find1.length());
+
+			out = in.substring(0, i);
+			out += in.substring(j + find2.length(), in.length());
+			in = out;
+			k++;
+		}
+
+		return out;
 	}
 
 	protected boolean getDataNormalMode(String result) {
@@ -768,6 +796,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		// 아래 코드도 역시 오류 발생
 		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
 		result = removeImgData(result);
+		result = removeImgData2(result);
 
 		// DB에 해당 글 번호를 확인한다.
 		final DBHelper db = new DBHelper(this);
