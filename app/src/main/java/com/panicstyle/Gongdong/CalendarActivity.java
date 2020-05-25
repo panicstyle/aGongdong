@@ -374,9 +374,9 @@ public class CalendarActivity extends AppCompatActivity implements Runnable {
         String url;
         // view-source:http://cafe.gongdong.or.kr/cafe.php?p1=menbal&getYear=2016&getMonth=10&formx=&fieldx=&sort=cal43&mode=
         if (m_isFirst == 1) {
-            url = "http://cafe.gongdong.or.kr/cafe.php?p1=" + m_strCommId + "&sort=" + m_strBoardId;
+            url = GlobalConst.CAFE_SERVER + "/cafe.php?p1=" + m_strCommId + "&sort=" + m_strBoardId;
         } else {
-            url = "http://cafe.gongdong.or.kr/cafe.php?p1=" + m_strCommId + "&sort=" + m_strBoardId + "&getYear=" + m_nYear + "&getMonth=" + m_nMonth + "&formx=&fieldx=&mode=";
+            url = GlobalConst.CAFE_SERVER + "/cafe.php?p1=" + m_strCommId + "&sort=" + m_strBoardId + "&getYear=" + m_nYear + "&getMonth=" + m_nMonth + "&formx=&fieldx=&mode=";
         }
         // /cafe.php?p1=menbal&sort=cal43&getYear=2016&getMonth=1&formx=&fieldx=&mode=
         String result = m_app.m_httpRequest.requestGet(url, url, "utf-8");

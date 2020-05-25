@@ -307,7 +307,7 @@ public class MainActivity extends AppCompatActivity implements Runnable {
 
     protected boolean getData() {
 
-        String url = "http://www.gongdong.or.kr/";
+        String url = "https://www.gongdong.or.kr/";
 
         String result = m_app.m_httpRequest.requestGet(url, url, "utf-8");
         // Direct use of Pattern:

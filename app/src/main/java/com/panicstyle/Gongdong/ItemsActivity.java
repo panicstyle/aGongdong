@@ -721,7 +721,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 	protected boolean getDataCommunity() {
 		String Page = Integer.toString(m_nPage);
 //		http://cafe.gongdong.or.kr/cafe.php?p1=menbal&sort=35
-		String url = "http://cafe.gongdong.or.kr/cafe.php?p1=" + m_strCommId + "&sort=" + m_strBoardId + "&page=" + Page;
+		String url = GlobalConst.CAFE_SERVER + "/cafe.php?p1=" + m_strCommId + "&sort=" + m_strBoardId + "&page=" + Page;
         String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
 
         if (result.indexOf("window.alert(\"권한이 없습니다") > 0 || result.indexOf("window.alert(\"로그인 하세요") > 0 ) {

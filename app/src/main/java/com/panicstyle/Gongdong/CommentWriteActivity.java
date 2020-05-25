@@ -149,7 +149,7 @@ public class CommentWriteActivity extends AppCompatActivity implements Runnable 
     };        
     	
     protected boolean PostData() {
-		String url = "http://cafe.gongdong.or.kr/cafe.php?mode=up_add&sub_sort=&p2=&p1=" + m_strCommId + "&sort=" + m_strBoardId;
+		String url = GlobalConst.CAFE_SERVER + "/cafe.php?mode=up_add&sub_sort=&p2=&p1=" + m_strCommId + "&sort=" + m_strBoardId;
         String strParam = "number=" + m_strBoardNo + "&content=" + m_strComment;
         ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
         nameValuePairs.add(new BasicNameValuePair("number", m_strBoardNo));
@@ -170,7 +170,7 @@ public class CommentWriteActivity extends AppCompatActivity implements Runnable 
     }
 
     protected boolean PostModifyData() {
-        String url = "http://cafe.gongdong.or.kr/cafe.php?mode=edit_reply&p2=&p1=" + m_strCommId + "&sort=" + m_strBoardId;
+        String url = GlobalConst.CAFE_SERVER + "/cafe.php?mode=edit_reply&p2=&p1=" + m_strCommId + "&sort=" + m_strBoardId;
         ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
         nameValuePairs.add(new BasicNameValuePair("number", m_strCommentNo));
         nameValuePairs.add(new BasicNameValuePair("content", m_strComment));
