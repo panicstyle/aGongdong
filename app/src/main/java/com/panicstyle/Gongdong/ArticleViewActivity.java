@@ -402,7 +402,11 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         String PNotice = extras.getString("PNotice");
         if (PNotice == null) PNotice = "";
 
-        if (PNotice.equalsIgnoreCase("pnotice")) {
+
+        String boardType = extras.getString("boardType");
+        if (boardType == null) boardType = "";
+
+        if (boardType.equalsIgnoreCase("center")) {
             m_nPNotice = 1;
         } else {
             m_nPNotice = 0;

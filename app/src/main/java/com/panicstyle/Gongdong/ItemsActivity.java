@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -154,6 +155,12 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 						name += "(" + hit + "&nbsp;읽음)";
 					}
 
+					if ((int)item.get("isPNotice") == 1 || (int)item.get("isNotice") == 1) {
+						holder.subject.setTypeface(null, Typeface.BOLD);
+					} else {
+						holder.subject.setTypeface(null, Typeface.NORMAL);
+					}
+
 					// Bind the data efficiently with the holder.
 					holder.name.setText(Html.fromHtml(name));
 					holder.subject.setText(subject);
@@ -267,10 +274,10 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 					item = m_arrayItems.get(position);
 					Intent intent = new Intent(ItemsActivity.this, ArticleViewActivity.class);
 
-					if ((Integer)item.get("isPNotice") == 1) {
-						intent.putExtra("PNotice", "pnotice");
+					if ((Integer)item.get("isCenter") == 1) {
+						intent.putExtra("boardType", "center");
 					} else {
-						intent.putExtra("PNotice", "cafe");
+						intent.putExtra("boardType", "cafe");
 					}
 					intent.putExtra("commId", (String) item.get("commId"));
 					intent.putExtra("boardId", (String) item.get("boardId"));
@@ -439,8 +446,10 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			String matchstr = m.group(0);
 			int isNoti = 0;
 
+			item.put("isCenter", 1);
+
 			// find [공지]
-			item.put("isPNotice", 1);
+			item.put("isPNotice", 0);
 
 			// find [공지]
 			if (matchstr.contains("<tr class=\"bo_notice")) {
@@ -533,8 +542,10 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			String matchstr = m.group(0);
 			int isNoti = 0;
 
+			item.put("isCenter", 1);
+
 			// find [공지]
-			item.put("isPNotice", 1);
+			item.put("isPNotice", 0);
 
 			// find [공지]
 			if (matchstr.contains("<tr class=\"bo_notice")) {
@@ -670,8 +681,10 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			item = new HashMap<String, Object>();
 			String matchstr = m.group(0);
 
+			item.put("isCenter", 1);
+
 			// find [공지]
-			item.put("isPNotice", 1);
+			item.put("isPNotice", 0);
 			item.put("isNotice", 0);
 
 			// picLink
@@ -807,16 +820,18 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
             String matchstr = m.group(0);
             int isNoti = 0;
 
-            // find [공지]
-            if (matchstr.contains("[법인공지]")) {
+			// find [공지]
+            if (matchstr.contains("<div align=\"center\">[법인공지]</div>")) {
                 item.put("isPNotice", 1);
-                isNoti = 2;
+				item.put("isCenter", 1);
+				isNoti = 2;
             } else {
-            	item.put("isPNotice", 0);
+				item.put("isPNotice", 0);
+				item.put("isCenter", 0);
             }
 
             // find [공지]
-            if (matchstr.contains("[공지]")) {
+            if (matchstr.contains("<div align=\"center\">[공지]</div>")) {
                 item.put("isNotice", 1);
                 isNoti = 1;
             } else {
@@ -924,6 +939,8 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		for (i = 1; i < items.length; i++) { // Find each match in turn; String can't do this.
 			item = new HashMap<>();
 			String matchstr = items[i];
+
+			item.put("isCenter", 0);
 
 			// find [공지]
 			item.put("isPNotice", 0);
