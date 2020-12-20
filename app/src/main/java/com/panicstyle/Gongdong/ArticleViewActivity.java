@@ -489,7 +489,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
                 strComment = Utils.getMatcherFirstString("(?<=<td colspan=\\\"2\\\">)(.|\\n)*?(?=</div>)", matchstr);
             }
             strComment = Utils.repalceHtmlSymbol(strComment);
-            strComment = Html.fromHtml(strComment).toString();
+//            strComment = Html.fromHtml(strComment).toString();
             item.put("comment",  strComment);
 
             // is Re
@@ -591,7 +591,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
             // comment
             String strComment = Utils.getMatcherFirstString("(<!-- 댓글 출력 -->)(.|\\n)*?(<!-- 수정 -->)", matchstr);
             strComment = Utils.repalceHtmlSymbol(strComment);
-            strComment = Html.fromHtml(strComment).toString();
+//            strComment = Html.fromHtml(strComment).toString();
             item.put("comment",  strComment);
 
             // delete link
