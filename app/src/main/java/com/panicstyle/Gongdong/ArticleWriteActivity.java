@@ -161,13 +161,13 @@ public class ArticleWriteActivity extends AppCompatActivity implements Runnable 
 
     protected boolean PostData() {
 
-        String url = "http://cafe.gongdong.or.kr/cafe.php?mode=up&p2=&p1=" + m_strCommId + "&sort=" + m_strBoardId;
+        String url = GlobalConst.CAFE_SERVER + "/cafe.php?mode=up&p2=&p1=" + m_strCommId + "&sort=" + m_strBoardId;
 
         return PostDataCore(url);
     }
 
     protected boolean PostModifyData() {
-        String url = "http://cafe.gongdong.or.kr/cafe.php?mode=edit&p2=&p1=" + m_strCommId + "&sort=" + m_strBoardId;
+        String url = GlobalConst.CAFE_SERVER + "/cafe.php?mode=edit&p2=&p1=" + m_strCommId + "&sort=" + m_strBoardId;
 
         return PostDataCore(url);
     }

@@ -205,9 +205,9 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
                 } else {
                     if (m_nThreadMode == 2) {
                         if (getParent() == null) {
-                            setResult(Activity.RESULT_OK, new Intent());
+                            setResult(GlobalConst.RESULT_DELETE_OK, new Intent());
                         } else {
-                            getParent().setResult(Activity.RESULT_OK, new Intent());
+                            getParent().setResult(GlobalConst.RESULT_DELETE_OK, new Intent());
                         }
                         finish();
                     } else {
@@ -265,7 +265,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
 
             webContent.clearView();
             webContent.requestLayout();
-            webContent.loadDataWithBaseURL("http://cafe.gongdong.or.kr", m_strHTML, "text/html", "utf-8", "");
+            webContent.loadDataWithBaseURL(GlobalConst.CAFE_SERVER, m_strHTML, "text/html", "utf-8", "");
 
             tvProfile = (TextView) findViewById(R.id.profile);
             tvProfile.setText(m_strProfile);
@@ -402,7 +402,11 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
         String PNotice = extras.getString("PNotice");
         if (PNotice == null) PNotice = "";
 
-        if (PNotice.equalsIgnoreCase("pnotice")) {
+
+        String boardType = extras.getString("boardType");
+        if (boardType == null) boardType = "";
+
+        if (boardType.equalsIgnoreCase("center")) {
             m_nPNotice = 1;
         } else {
             m_nPNotice = 0;
@@ -422,7 +426,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     }
 
     protected boolean getDataCommunity() {
-		String url = "http://cafe.gongdong.or.kr/cafe.php?sort=" + m_strBoardId + "&sub_sort=&page=&startpage=&keyfield=&key_bs=&p1="
+		String url = GlobalConst.CAFE_SERVER + "/cafe.php?sort=" + m_strBoardId + "&sub_sort=&page=&startpage=&keyfield=&key_bs=&p1="
                 + m_strCommId + "&p2=&p3=&number=" + m_strBoardNo + "&mode=view";
         String result = m_app.m_httpRequest.requestGet(url, url, "utf-8");
 
@@ -485,7 +489,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
                 strComment = Utils.getMatcherFirstString("(?<=<td colspan=\\\"2\\\">)(.|\\n)*?(?=</div>)", matchstr);
             }
             strComment = Utils.repalceHtmlSymbol(strComment);
-            strComment = Html.fromHtml(strComment).toString();
+//            strComment = Html.fromHtml(strComment).toString();
             item.put("comment",  strComment);
 
             // is Re
@@ -587,7 +591,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
             // comment
             String strComment = Utils.getMatcherFirstString("(<!-- 댓글 출력 -->)(.|\\n)*?(<!-- 수정 -->)", matchstr);
             strComment = Utils.repalceHtmlSymbol(strComment);
-            strComment = Html.fromHtml(strComment).toString();
+//            strComment = Html.fromHtml(strComment).toString();
             item.put("comment",  strComment);
 
             // delete link
@@ -740,7 +744,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     }
 
     protected void runDeleteArticle() {
-		String url = "http://cafe.gongdong.or.kr/cafe.php?mode=del&sort=" + m_strBoardId + "&sub_sort=&p1=" + m_strCommId + "&p2=";
+		String url = GlobalConst.CAFE_SERVER + "/cafe.php?mode=del&sort=" + m_strBoardId + "&sub_sort=&p1=" + m_strCommId + "&p2=";
 
         ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
         nameValuePairs.add(new BasicNameValuePair("number", m_strBoardNo));
@@ -842,7 +846,7 @@ public class ArticleViewActivity extends AppCompatActivity implements Runnable {
     protected void runDeleteComment() {
 		HttpRequest httpRequest = new HttpRequest();
 		
-		String url = "http://cafe.gongdong.or.kr/cafe.php?mode=del_reply&sort=" + m_strBoardId + "&sub_sort=&p1=" + m_strCommId + "&p2=";
+		String url = GlobalConst.CAFE_SERVER + "/cafe.php?mode=del_reply&sort=" + m_strBoardId + "&sub_sort=&p1=" + m_strCommId + "&p2=";
 
         ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
         nameValuePairs.add(new BasicNameValuePair("number", m_strCommentNo));

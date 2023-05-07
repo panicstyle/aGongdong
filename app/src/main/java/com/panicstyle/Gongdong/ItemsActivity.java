@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,6 +31,7 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -153,6 +155,12 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 						name += "(" + hit + "&nbsp;읽음)";
 					}
 
+					if ((int)item.get("isPNotice") == 1 || (int)item.get("isNotice") == 1) {
+						holder.subject.setTypeface(null, Typeface.BOLD);
+					} else {
+						holder.subject.setTypeface(null, Typeface.NORMAL);
+					}
+
 					// Bind the data efficiently with the holder.
 					holder.name.setText(Html.fromHtml(name));
 					holder.subject.setText(subject);
@@ -266,10 +274,10 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 					item = m_arrayItems.get(position);
 					Intent intent = new Intent(ItemsActivity.this, ArticleViewActivity.class);
 
-					if ((Integer)item.get("isPNotice") == 1) {
-						intent.putExtra("PNotice", "pnotice");
+					if ((Integer)item.get("isCenter") == 1) {
+						intent.putExtra("boardType", "center");
 					} else {
-						intent.putExtra("PNotice", "cafe");
+						intent.putExtra("boardType", "cafe");
 					}
 					intent.putExtra("commId", (String) item.get("commId"));
 					intent.putExtra("boardId", (String) item.get("boardId"));
@@ -304,37 +312,50 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
         thread.start();
     }
 
-    public void run() {
-    	if (!getData()) {
-            // Login
+	private static class MyHandler extends Handler {
+		private final WeakReference<ItemsActivity> mActivity;
+		public MyHandler(ItemsActivity activity) {
+			mActivity = new WeakReference<ItemsActivity>(activity);
+		}
+		@Override
+		public void handleMessage(Message msg) {
+			ItemsActivity activity = mActivity.get();
+			if (activity != null) {
+				activity.handleMessage(msg);
+			}
+		}
+	}
+
+	private final MyHandler mHandler = new MyHandler(this);
+
+	public void run() {
+		if (!getData()) {
+			// Login
 			Login login = new Login();
 			m_LoginStatus = login.LoginTo(ItemsActivity.this, m_app.m_httpRequest, m_app.m_strUserId, m_app.m_strUserPw);
 			m_strErrorMsg = login.m_strErrorMsg;
 
-    		if (m_LoginStatus > 0) {
-    			if (getData()) {
-    				m_LoginStatus = 1;
-    			} else {
+			if (m_LoginStatus > 0) {
+				if (getData()) {
+					m_LoginStatus = 1;
+				} else {
 					m_LoginStatus = -2;
 				}
-    		}
-    	} else {
+			}
+		} else {
 			m_LoginStatus = 1;
-    	}
-   		handler.sendEmptyMessage(0);
-    }
+		}
+		mHandler.sendEmptyMessage(0);
+	}
 
-    private Handler handler = new Handler() {
-    	@Override
-    	public void handleMessage(Message msg) {
-            if(m_pd != null){
-                if(m_pd.isShowing()){
-                    m_pd.dismiss();
-                }
-            }
-    		displayData();
-    	}
-    };
+	private void handleMessage(Message msg) {
+		if (m_pd != null) {
+			if (m_pd.isShowing()) {
+				m_pd.dismiss();
+			}
+		}
+		displayData();
+	}
 
     public void displayData() {
 		if (m_LoginStatus == -1) {
@@ -414,6 +435,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		// 아래 코드도 역시 오류 발생
 		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
 		result = removeImgData(result);
+		result = removeImgData2(result);
 
 		// DB에 해당 글 번호를 확인한다.
 		final DBHelper db = new DBHelper(this);
@@ -424,8 +446,10 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			String matchstr = m.group(0);
 			int isNoti = 0;
 
+			item.put("isCenter", 1);
+
 			// find [공지]
-			item.put("isPNotice", 1);
+			item.put("isPNotice", 0);
 
 			// find [공지]
 			if (matchstr.contains("<tr class=\"bo_notice")) {
@@ -507,6 +531,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		// 아래 코드도 역시 오류 발생
 		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
 		result = removeImgData(result);
+		result = removeImgData2(result);
 
 		// DB에 해당 글 번호를 확인한다.
 		final DBHelper db = new DBHelper(this);
@@ -517,8 +542,10 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			String matchstr = m.group(0);
 			int isNoti = 0;
 
+			item.put("isCenter", 1);
+
 			// find [공지]
-			item.put("isPNotice", 1);
+			item.put("isPNotice", 0);
 
 			// find [공지]
 			if (matchstr.contains("<tr class=\"bo_notice")) {
@@ -644,6 +671,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		// 아래 코드도 역시 오류 발생
 		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
 		result = removeImgData(result);
+		result = removeImgData2(result);
 
 		// DB에 해당 글 번호를 확인한다.
 		final DBHelper db = new DBHelper(this);
@@ -653,8 +681,10 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			item = new HashMap<String, Object>();
 			String matchstr = m.group(0);
 
+			item.put("isCenter", 1);
+
 			// find [공지]
-			item.put("isPNotice", 1);
+			item.put("isPNotice", 0);
 			item.put("isNotice", 0);
 
 			// picLink
@@ -704,7 +734,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 	protected boolean getDataCommunity() {
 		String Page = Integer.toString(m_nPage);
 //		http://cafe.gongdong.or.kr/cafe.php?p1=menbal&sort=35
-		String url = "http://cafe.gongdong.or.kr/cafe.php?p1=" + m_strCommId + "&sort=" + m_strBoardId + "&page=" + Page;
+		String url = GlobalConst.CAFE_SERVER + "/cafe.php?p1=" + m_strCommId + "&sort=" + m_strBoardId + "&page=" + Page;
         String result = m_app.m_httpRequest.requestGet(url, "", "utf-8");
 
         if (result.indexOf("window.alert(\"권한이 없습니다") > 0 || result.indexOf("window.alert(\"로그인 하세요") > 0 ) {
@@ -722,16 +752,16 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 	}
 
 	protected String removeImgData(String src) {
-    	String in = src;
-    	String out = src;
-    	int i = 0;
-    	int j = 0;
-    	int k = 0;
+		String in = src;
+		String out = src;
+		int i = 0;
+		int j = 0;
+		int k = 0;
 
-    	String find1 = "<img src='data:image";
-    	String find2 = "/>";
+		String find1 = "<img src='data:image";
+		String find2 = "/>";
 
-    	while (true) {
+		while (true) {
 			i = in.indexOf(find1);
 			if (i < 0) break;
 			if (k > 20) break;
@@ -743,7 +773,32 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			k++;
 		}
 
-    	return out;
+		return out;
+	}
+
+	protected String removeImgData2(String src) {
+		String in = src;
+		String out = src;
+		int i = 0;
+		int j = 0;
+		int k = 0;
+
+		String find1 = "<img src=data:image";
+		String find2 = "/>";
+
+		while (true) {
+			i = in.indexOf(find1);
+			if (i < 0) break;
+			if (k > 20) break;
+			j = in.indexOf(find2, i + find1.length());
+
+			out = in.substring(0, i);
+			out += in.substring(j + find2.length(), in.length());
+			in = out;
+			k++;
+		}
+
+		return out;
 	}
 
 	protected boolean getDataNormalMode(String result) {
@@ -754,6 +809,7 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 		// 아래 코드도 역시 오류 발생
 		//result = result.replaceAll("(<img src=\\\'data:image)(.|\\n)*?(/>)", "");
 		result = removeImgData(result);
+		result = removeImgData2(result);
 
 		// DB에 해당 글 번호를 확인한다.
 		final DBHelper db = new DBHelper(this);
@@ -764,16 +820,18 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
             String matchstr = m.group(0);
             int isNoti = 0;
 
-            // find [공지]
-            if (matchstr.contains("[법인공지]")) {
+			// find [공지]
+            if (matchstr.contains("<div align=\"center\">[법인공지]</div>")) {
                 item.put("isPNotice", 1);
-                isNoti = 2;
+				item.put("isCenter", 1);
+				isNoti = 2;
             } else {
-            	item.put("isPNotice", 0);
+				item.put("isPNotice", 0);
+				item.put("isCenter", 0);
             }
 
             // find [공지]
-            if (matchstr.contains("[공지]")) {
+            if (matchstr.contains("<div align=\"center\">[공지]</div>")) {
                 item.put("isNotice", 1);
                 isNoti = 1;
             } else {
@@ -882,6 +940,8 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
 			item = new HashMap<>();
 			String matchstr = items[i];
 
+			item.put("isCenter", 0);
+
 			// find [공지]
 			item.put("isPNotice", 0);
 			item.put("isNotice", 0);
@@ -976,27 +1036,37 @@ public class ItemsActivity extends AppCompatActivity implements Runnable {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
     	super.onActivityResult(requestCode, resultCode, intent);
-		if (resultCode == RESULT_OK) {
-			switch(requestCode) {
-				case GlobalConst.REQUEST_WRITE:
-						m_arrayItems.clear();
-						m_adapter.notifyDataSetChanged();
-						m_nPage = 1;
-
-						m_pd = ProgressDialog.show(this, "", "로딩중", true,
-								false);
-
-						Thread thread = new Thread(this);
-						thread.start();
-					break;
-				case GlobalConst.REQUEST_VIEW:
-					HashMap<String, Object> item;
-					item = m_arrayItems.get(last_position);
-					item.put("read", 1);
-					m_arrayItems.set(last_position, item);
+		switch(requestCode) {
+			case GlobalConst.REQUEST_WRITE:
+				if (resultCode == RESULT_OK) {
+					m_arrayItems.clear();
 					m_adapter.notifyDataSetChanged();
-					break;
-			}
-    	}
+					m_nPage = 1;
+
+					m_pd = ProgressDialog.show(this, "", "로딩중", true,
+							false);
+
+					Thread thread = new Thread(this);
+					thread.start();
+				}
+				break;
+			case GlobalConst.REQUEST_VIEW:
+				if (resultCode == RESULT_OK) {
+					if (m_arrayItems.size() > last_position) {
+						HashMap<String, Object> item;
+						item = m_arrayItems.get(last_position);
+						item.put("read", 1);
+						m_arrayItems.set(last_position, item);
+						m_adapter.notifyDataSetChanged();
+					}
+				} else if (resultCode == GlobalConst.RESULT_DELETE_OK) {
+					if (m_arrayItems.size() > last_position) {
+						HashMap<String, Object> item;
+						m_arrayItems.remove(last_position);
+						m_adapter.notifyDataSetChanged();
+					}
+				}
+				break;
+		}
     }
 }

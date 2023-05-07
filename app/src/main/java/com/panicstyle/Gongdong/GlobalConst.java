@@ -4,8 +4,8 @@ package com.panicstyle.Gongdong;
  * Created by dykim on 2016. 3. 1..
  */
 public class GlobalConst {
-    public static final String MENU_SERVER = "http://www.moojigae.or.kr";
-    public static final String WWW_SERVER = "http://www.gongdong.or.kr";
+    public static final String WWW_SERVER = "https://www.gongdong.or.kr";
+    public static final String CAFE_SERVER = "http://cafe.gongdong.or.kr";
 
     public static final int WRITE = 1;
     public static final int MODIFY = 2;
@@ -37,4 +37,6 @@ public class GlobalConst {
     public static final int REQUEST_COMMENT_REPLY_VIEW = 6;
     public static final int REQUEST_COMMENT_MODIFY_VIEW = 7;
     public static final int REQUEST_COMMENT_DELETE_VIEW = 8;
+
+    public static final int RESULT_DELETE_OK = -2;
 }

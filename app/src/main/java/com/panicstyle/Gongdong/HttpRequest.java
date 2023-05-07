@@ -7,6 +7,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.params.ClientPNames;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -31,6 +32,7 @@ public class HttpRequest {
 			HttpParams params = httpClient.getParams();
 			HttpConnectionParams.setConnectionTimeout(params, 30000);
 			HttpConnectionParams.setSoTimeout(params, 30000);
+			params.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
 
 			HttpPost httppost = new HttpPost(url);
 			if (referer.length() > 0) {
@@ -69,6 +71,7 @@ public class HttpRequest {
 			HttpParams params = httpClient.getParams();
 			HttpConnectionParams.setConnectionTimeout(params, 30000);
 			HttpConnectionParams.setSoTimeout(params, 30000);
+			params.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
 
 			HttpPost httppost = new HttpPost(url);
 			if (referer.length() > 0) {
@@ -107,6 +110,7 @@ public class HttpRequest {
 			HttpParams params = httpClient.getParams();
 			HttpConnectionParams.setConnectionTimeout(params, 30000);
 			HttpConnectionParams.setSoTimeout(params, 30000);
+			params.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
 
 			HttpPost httppost = new HttpPost(url);
 			if (referer.length() > 0) {
@@ -145,6 +149,7 @@ public class HttpRequest {
 			HttpParams params = httpClient.getParams();
 			HttpConnectionParams.setConnectionTimeout(params, 30000);
 			HttpConnectionParams.setSoTimeout(params, 30000);
+			params.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
 
 //		    String cookie = (String)params.getParameter("Cookie");
 //            System.out.println("Cookie:" + cookie);
